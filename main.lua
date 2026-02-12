@@ -11,7 +11,7 @@ function love.load()
 	love.graphics.setDefaultFilter("nearest")
 	love.graphics.setLineStyle("rough")
 
-	fisher = guy:new("fisher.png", 75, 159, 610, 397)
+	fisher = guy:new("img/fisher.png", 75, 159, 610, 397)
 	fisher.hasrod = true
 	fisher.casting = false
 	fisher.castTimer = timer:new(0.2)
@@ -20,14 +20,14 @@ function love.load()
 	fisher.fishin = false
 	fisher.speed = 200
 	
-	rod = guy:new("rod.png", 132, 98)
-	line = guy:new("line.png", 172, 97)
+	rod = guy:new("img/rod.png", 132, 98)
+	line = guy:new("img/line.png", 172, 97)
 	line:stretchy(0)
 	line.hstretch = 0
 	line.threshold = 50
 	line.speed = 400
 
-	lake = level:new("level.png", {
+	lake = level:new("img/level.png", {
 		rect:new(114, 273, 121, 86),
 		rect:new(180, 291, 208, 195),
 		rect:new(132, 354, 54, 97),
@@ -42,10 +42,10 @@ function love.load()
 		rect:new(135, 450, 14, 20),
 	})
 
-	ripple = guy:new("ripple.png", 32, 9)
+	ripple = guy:new("img/ripple.png", 32, 9)
 	ripple.inwater = false
 
-	splash = effect:new("splash.png", 35, 40)
+	splash = effect:new("img/splash.png", 35, 40)
 	splash.spots = {}
 
 	fishes = {
@@ -99,7 +99,7 @@ function love.load()
 	scale = 1
 	width, height = love.graphics.getDimensions()
 	canvas = love.graphics.newCanvas(width*2*(1/scale), height*2*(1/scale))
-	song = love.audio.newSource("crawdadhole.wav", "stream")
+	song = love.audio.newSource("aud/crawdadhole.wav", "stream")
 	points = 0
 	starting = true
 	firstsplash = timer:new(2)
