@@ -220,41 +220,6 @@ function love.update(dt)
 			end
 
 			if caughtfish.show then line.speed = 400 end
-
-			-- if spot.snagged and not line.reeling and not spot.pulltimer:countdown(dt)
-			
-			-- spot.snagged = true
-			-- choose the fish
-			-- caughtfish = dictrandom(fishes)
-			-- line.speed = 0
-
--- 			if spot.snagged and not line.reeling and not spot.pulltimer:countdown(dt) then
--- 				spot.pulltimer.duration = 2/3*spot.pulltimer.duration
--- 				spot.pulltimer:reset()
--- 				line.speed = 400
--- 			
--- 			elseif line.reeling and spot.pulltimer:countdown(dt) then
--- 				-- we queue anything that manages to get hit up for removal
--- 				table.insert(forremoval, idx)
--- 
--- 				-- animation stuff
--- 				caughtfish.x, caughtfish.y = spot.x, spot.y
--- 				caughtfish.ox, caughtfish.oy = spot.x, spot.y
--- 				-- amount of time spent following the catch curve
--- 				caughtfish.timer = timer:new(1.5)
--- 
--- 				-- makes sure the fish is drawn
--- 				caughtfish.show = true
--- 				fisher.grunting = false
--- 			elseif line.reeling and not fisher.grunting then
--- 				TEsound.play("aud/" .. trandom({"alan", "macy", "jack", "june"}) .. "grunt.mp3", "static", 0.8)
--- 				fisher.grunting = true
--- 			end
--- 
--- 			if line.reeling then
--- 				line.speed = love.math.random()-0.5
--- 			end
-
 		end
 
 		-- sort greatest to least so indices dont get fd up
