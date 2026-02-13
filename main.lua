@@ -29,7 +29,6 @@ function love.load()
 	line.threshold = 50
 	line.speed = 400
 	line.reeling = false
-	line.jittering = false
 
 	lake = level:new("img/level.png", {
 		rect:new(114, 273, 121, 86),
@@ -173,13 +172,10 @@ function love.update(dt)
 		-- the x/y goes into a table along with a timer
 		local forremoval = {}
 		for idx, spot in ipairs(splash.spots) do
-			-- each timer is counted down & if at 0, then
+			-- each timer is counted down while untouched by the player & if at 0,
 			if not spot.snagged and spot.timer:countdown(dt) then
-				table.insert(forremoval, idx) -- the index is queued for removal
+				table.insert(forremoval, idx) -- then the index is queued for removal
 			end
-
-			-- -- once a fish is snagged the timer should not cause the spot to disappear
-			-- if spot.snagged and spot.timer.clock > 0.5 then spot.timer.clock = 0.5 end
 		end
 
 		-- here we check to see if the ripple collides with any of the splash points
@@ -187,25 +183,24 @@ function love.update(dt)
 			local collides = ripple:rect():haspoint(spot.x, spot.y)
 			if collides then
 				if not spot.snagged then
-					spot.snagged = true
+					spot.snagged = true -- start the timer for the hold shift to pull mechanic
 					if not spot.pulltimer then spot.pulltimer = timer:new(1) end
 					line.speed = 0
 				end
 
-				if line.reeling then
-					if not fisher.grunting then
+				if line.reeling then -- i.e. if shift is being held
+					if not fisher.grunting then -- play the sound and make the line jitter
 						local grunter = trandom({"alan", "macy", "jack", "june"})
 						TEsound.play("aud/"..grunter.."grunt.mp3", "static", 1)
 						fisher.grunting = true
-						line.jittering = true
 					end
 					
-					if spot.pulltimer:countdown(dt) then
+					if spot.pulltimer:countdown(dt) then -- count down. u get the fish when the timer hits zero
 						table.insert(forremoval, idx)
 						caughtfish = dictrandom(fishes)
 						line.speed = 400
 						
-						-- animation stuff
+						-- put fish at beginning of curve
 						caughtfish.x, caughtfish.y = spot.x, spot.y
 						caughtfish.ox, caughtfish.oy = spot.x, spot.y
 						-- amount of time spent following the catch curve
@@ -213,12 +208,13 @@ function love.update(dt)
 	
 						-- makes sure the fish is drawn
 						caughtfish.show = true
+						-- stop playing the sound
 						fisher.grunting = false
-						line.jittering = false
 					end
 				end
 			end
 
+			-- this prevents a glitch i dont rly understand where you suddenly can't pull the line in
 			if caughtfish.show then line.speed = 400 end
 		end
 
@@ -239,11 +235,13 @@ function love.update(dt)
 				caughtfish.show = false
 			end
 
+			-- follow the curve
 			caughtfish.curve = fishcurve(caughtfish.ox, caughtfish.oy, fisher.x, fisher.y-fisher.height/3)
 			caughtfish.x, caughtfish.y = caughtfish.curve:evaluate(1-caughtfish.timer:progress())
 		end
 	end
-	
+
+	-- they said i had to do this idk wat it means
 	TEsound.cleanup()
 end
 
@@ -253,7 +251,6 @@ function love.draw()
 
 	if scene == 0 then
 		love.graphics.setColor(1, 1, 1)
-
 		
 		lake:draw(0, 0)
 		if fisher.state == fisherstates.none and ripple.inwater then 
@@ -262,7 +259,8 @@ function love.draw()
 		
 		for _, spot in ipairs(splash.spots) do splash:draw(spot.x, spot.y) end
 
-		if line.jittering then
+		-- makes line jitter only visual so doesnt mess w physics
+		if fisher.grunting then
 			local jitteramt = 20
 			line:draw(line.x + (jitteramt*(love.math.random()-0.5)),
 					  line.y + (jitteramt*(love.math.random()-0.5))) 
