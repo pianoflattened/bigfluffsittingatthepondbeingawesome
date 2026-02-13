@@ -84,6 +84,7 @@ function love.load()
 		drunkfish1 = fish:new("fish/drunkfish1.png"),
 		drunkfish2 = fish:new("fish/drunkfish2.png"),
 		drunkfish13 = fish:new("fish/drunkfish13.png"),
+		beautifulfishency = fish:new("fish/beautifulfishency.png"),
 	}
 	
 	caughtfish = fishes[1]

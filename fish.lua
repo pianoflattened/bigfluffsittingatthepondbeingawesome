@@ -2,14 +2,14 @@ local inspect = require 'inspect'
 
 fish = {}
 fish.__index = fish
-function fish:new(path, points, scene)
+function fish:new(path, points, scene, rarity)
 	local o = setmetatable({}, self)
 	o.path = path                                            -- 123456   54321
 	o.name = string.sub(string.sub(path, 6), 0, -5) -- cuts off fish/ and .png
 	o.img = love.graphics.newImage(path)
 	o.points = points or 1
 	-- 1/x(ln x + 1)^2 without wacky behavior near 0
-	o.rarity = ((points + 11.54715)^(-0.772983))/(9.22967^(-1.10754))
+	o.rarity = rarity or ((points + 11.54715)^(-0.772983))/(9.22967^(-1.10754))
 	o.scene = scene or function() return false end
 	return o
 end
