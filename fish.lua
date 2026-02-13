@@ -42,7 +42,7 @@ function tryspawnfish(rects, freq, force)
 		local spawnx, spawny = whichrect:randpoint()
 		local timer = timer:new(3.6) -- length of splash audio
 
-		TEsound.play("aud/splash.mp3", "static", {}, 0.8)
+		TEsound.play("aud/splash.mp3", "static", {}, 1)
 		return {
 			x = spawnx, 
 			y = spawny,
