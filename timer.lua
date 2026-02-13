@@ -15,3 +15,7 @@ function timer:countdown(dt)
 	self.clock = self.clock - dt
 	return self.clock <= 0
 end
+
+function timer:progress()
+	return math.max(math.min(1, self.clock/self.duration), 0)
+end

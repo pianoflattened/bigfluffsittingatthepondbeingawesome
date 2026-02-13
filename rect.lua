@@ -1,5 +1,3 @@
-local inspect = require 'inspect'
-
 rect = {}
 rect.__index = rect
 function rect:new(ox, oy, dx, dy)

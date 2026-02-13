@@ -1,15 +1,17 @@
-local inspect = require 'inspect'
-
 fish = {}
 fish.__index = fish
-function fish:new(path, points, scene, rarity)
+-- this passes name instead of calculating it from path b/c 
+-- loadfish needs to figure out the name before making the object
+function fish:new(path, name, len, points, rarity, scene)
 	local o = setmetatable({}, self)
-	o.path = path                                            -- 123456   54321
-	o.name = string.sub(string.sub(path, 6), 0, -5) -- cuts off fish/ and .png
+	o.path = path
+	o.name = name -- string.sub(string.sub(path, 6), 0, -5)
 	o.img = love.graphics.newImage(path)
+	o.len = len or o.img:getWidth()
+	o.scale = (len and len/o.img:getWidth()) or 100/math.min(o.img:getWidth(), o.img:getHeight())
 	o.points = points or 1
-	-- 1/x(ln x + 1)^2 without wacky behavior near 0
-	o.rarity = rarity or ((points + 11.54715)^(-0.772983))/(9.22967^(-1.10754))
+	-- (1/x)*(ln(x)+1)^2) without wacky behavior near 0
+	o.rarity = rarity or ((o.points + 11.54715)^(-0.772983))/(9.22967^(-1.10754))
 	o.scene = scene or function() return false end
 	return o
 end
@@ -18,61 +20,54 @@ function fish:draw(x, y, scale)
 	love.graphics.draw(self.img, x, y, 0, scale, scale, self.img:getWidth()/2, self.img:getHeight()/2)
 end
 
-function tryspawnfish(rects, force)
-	if love.math.random(1, 100) == 1 or force then
+function loadfish(attrs)
+	local fishes = {}
+	local fishfiles = love.filesystem.getDirectoryItems("fish")
+	for i, v in ipairs(fishfiles) do
+		local path = "fish/"..v           --         54321
+		local name = string.sub(v, 0, -5) -- cuts off .png
+		tmpfish = fish:new(path, name, unpack(attrs[name] or {}))
+		fishes[name] = tmpfish
+	end
+	return fishes
+end
+
+function tryspawnfish(rects, freq, force)
+	local fishchance = math.ceil(1500/((freq/120)+5))
+	if love.math.random(1, fishchance) == 1 or force then
 		local weights = {}
 		for _, r in ipairs(rects) do table.insert(weights, r:area()) end
 		local whichrect = weightedrandom(rects, weights)
-		
-		-- local sum = reduce(weights, function(a, b) return a+b end, 0)
-		-- local whichrect = love.math.random(0, sum)
-		-- local s = 0
-		-- for i, w in ipairs(weights) do
-		-- 	s = s + w
-		-- 	if s >= whichrect then
-		-- 		s = i
-		-- 		break
-		-- 	end
-		-- end
 
 		local spawnx, spawny = whichrect:randpoint()
 		local timer = timer:new(3.6) -- length of splash audio
 
-		TEsound.play("aud/splash.mp3", "static", {}, 1/2)
+		TEsound.play("aud/splash.mp3", "static", {}, 0.8)
 		return {
 			x = spawnx, 
 			y = spawny,
 			timer = timer,
-			snagged = false
 		}
 	end
 	return false
 end
 
-function randomfish(fishes)
-	local k = keys(fishes)
-	local c = k[love.math.random(#k)]
-	
-end
-
+-- https://math.stackexchange.com/questions/3557767/how-to-construct-a-catenary-of-a-specified-length-through-two-specified-points
 function catenary(x1, y1, x2, y2)
-	-- https://math.stackexchange.com/questions/3557767/how-to-construct-a-catenary-of-a-specified-length-through-two-specified-points
-	local L = width*2
-	local dx = x2-x1
-	local ax = (x1+x2)/2
-	local dy = y2-y1
-	local ay = (y1+y2)/2
+	local L = 2*math.sqrt(width^2 + height^2) -- this is reading the size globals in main SORRY 
+	local dx, dy = x2-x1, y2-y1
+	local ax, ay = (x1+x2)/2, (y1+y2)/2
 	local r = math.sqrt(L^2 - dy^2)/dx
+	
 	-- initial approximation for solution of Ar - sinh(A) = 0
 	local A0 = 0.25*(1+3*math.log(2*r)) + math.sqrt(2*math.log(2*r/math.exp(1)))
 	-- two iterations of newton's method
-	local f = function(x) return x*r - math.sinh(x) end
-	local fp = function(x) return r - math.cosh(x) end
+	local f, fp = function(x) return x*r - math.sinh(x) end, function(x) return r - math.cosh(x) end
 	local A1 = A0 - f(A0)/fp(A0)
 	local A = A1 - f(A1)/fp(A1)
-	local a = dx/2*A
+	
+	local a, c = dx/2*A, ay - L/(2*math.tanh(A))
 	local b = ax - a*math.atanh(dy/L)
-	local c = ay - L/(2*math.tanh(A))
 	return function(x) return a*math.cosh((x-b)/a)+c end
 end
 

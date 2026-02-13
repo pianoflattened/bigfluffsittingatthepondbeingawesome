@@ -1,3 +1,5 @@
+inspect = require 'inspect'
+
 function copy(obj, seen)
 	if type(obj) ~= 'table' then return obj end
 	if seen and seen[obj] then return seen[obj] end
@@ -35,16 +37,21 @@ function dictrandom(d)
 	return d[k[love.math.random(#k)]]
 end
 
+function trandom(t)
+	return t[love.math.random(#t)]
+end
+
 function weightedrandom(t, w)
 	local sum = reduce(w, function(a, b) return a+b end, 0)
 	local which = love.math.random()*sum
 	local s = 0
+	local idx = 1
 	for i, w in ipairs(w) do
 		s = s + w
 		if s >= which then
-			s = i
+			idx = i
 			break
 		end
 	end
-	return t[i]
+	return t[idx]
 end

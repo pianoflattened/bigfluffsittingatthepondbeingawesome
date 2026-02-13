@@ -27,17 +27,16 @@ function guy:draw(x, y)
 	love.graphics.draw(self.img, x, y, self.r, self.sx, self.sy, self.ox, self.oy)
 end
 
-function guy:stretchx(newwidth)
+function guy:stretchx(newwidth, limit)
+	if limit and newwidth > limit then newwidth = limit end
+
 	self.sx = newwidth / self.img:getWidth()
 	self.ox = ((self.oox-39) / self.sx) + 39
 	self.width = newwidth
 end
 
-function guy:stretchy(newheight)
-	if newheight > self.img:getHeight()*5 then
-		newheight = self.img:getHeight()*5
-	end
-
+function guy:stretchy(newheight, limit)
+	if limit and newheight > limit then newheight = limit end
 	if newheight <= 0 then newheight = 0.01 end
 
 	self.sy = newheight / self.img:getHeight()
@@ -71,4 +70,19 @@ end
 function effect:draw(x, y, scale)
 	scale = scale or 1
 	love.graphics.draw(self.img, x, y, 0, scale, scale, self.ox, self.oy)
+end
+
+
+level = {}
+level.__index = level
+setmetatable(level, {__index = guy})
+
+function level:new(path, rects)
+	local o = setmetatable(guy:new(path, 0, 0, 0, 0), self)
+	o.rects = rects
+	return o
+end
+
+function drawrects(rs)
+	for _, r in ipairs(rs) do r:draw("line") end
 end
