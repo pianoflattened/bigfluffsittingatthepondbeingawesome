@@ -1,11 +1,14 @@
 require 'util'
 require 'enum'
-require 'guy'
-require 'timer'
 require 'rect'
-require 'fish'
+require 'guy'
 require 'player'
+require 'fish'
 require 'tesound'
+
+-- numbers start at 53, 69 on alarm
+-- hammer starts at 71, 20
+currentscene, points = 0, 0
 
 function love.load()
 	width, height = love.graphics.getDimensions()
@@ -63,8 +66,6 @@ function love.load()
 	caughtfish.t = 0
 	caughtfish.curve = love.math.newBezierCurve(0, 0, 20, 20, 40, 0)
 
-	scene = 0
-	points = 0
 	starting = true
 	firstsplash = timer:new(2)
 	fishspawnfreqtimer = 0
@@ -76,7 +77,7 @@ function love.load()
 end
 
 function love.update(dt)
-	if scene == 0 then
+	if currentscene == 0 then
 		fishspawnfreqtimer = fishspawnfreqtimer + dt
 		if not crawdadhole:isPlaying() then love.audio.play(crawdadhole) end
 
@@ -198,7 +199,9 @@ function love.update(dt)
 					if spot.pulltimer:countdown(dt) then -- count down. u get the fish when the timer hits zero
 						table.insert(forremoval, idx)
 						caughtfish = dictrandom(fishes)
-						line.speed = 400
+						
+						local result = caughtfish:scene() -- SWITCH TO THE FISH'S LEVEL
+						if result then print(result) end
 						
 						-- put fish at beginning of curve
 						caughtfish.x, caughtfish.y = spot.x, spot.y
@@ -208,7 +211,8 @@ function love.update(dt)
 	
 						-- makes sure the fish is drawn
 						caughtfish.show = true
-						-- stop playing the sound
+						-- stop playing the sound & let the line move
+						line.speed = 400
 						fisher.grunting = false
 					end
 				end
@@ -249,7 +253,7 @@ function love.draw()
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(1, 1, 1)
 
-	if scene == 0 then
+	if currentscene == 0 then
 		love.graphics.setColor(1, 1, 1)
 		
 		lake:draw(0, 0)

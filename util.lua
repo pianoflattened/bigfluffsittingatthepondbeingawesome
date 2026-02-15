@@ -1,4 +1,41 @@
 inspect = require 'inspect'
+json = require 'json'
+
+timer = { duration = 0 }
+timer.__index = timer
+function timer:new(duration)
+	local o = setmetatable({}, self)
+	o.duration = duration
+	o.clock = duration
+	return o
+end
+
+function timer:reset()
+	self.clock = self.duration
+end
+
+function timer:countdown(dt)
+	self.clock = self.clock - dt
+	return self.clock <= 0
+end
+
+function timer:progress()
+	return math.max(math.min(1, self.clock/self.duration), 0)
+end
+
+function string.split(inputstr, sep)
+	local mp = "([^"..sep.."]+)"
+	if sep and #sep > 1 then 
+		mp = "(.-)("..sep..")"
+		inputstr = inputstr + sep
+	end
+	if sep == nil then sep = "%s" end
+	
+	local t = {}
+	for str in string.gmatch(inputstr, mp) do table.insert(t, str) end
+	return t
+end
+
 
 function copy(obj, seen)
 	if type(obj) ~= 'table' then return obj end
@@ -54,4 +91,25 @@ function weightedrandom(t, w)
 		end
 	end
 	return t[idx]
+end
+
+function last(t, i)
+	local l = #t
+	return t[l+i+1]
+end
+
+function fileextension(n)
+	return last(string.split(n, "."), -1)
+end
+
+function switch(i, cases)
+	local match = cases[i] or cases.default or function() end
+	return match()
+end
+
+function table.contains(t, i)
+	for _, v in pairs(t) do
+		if v == i then return true end
+	end
+	return false
 end

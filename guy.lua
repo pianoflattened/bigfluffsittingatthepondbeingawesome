@@ -19,6 +19,10 @@ function guy:new(path, ox, oy, x, y)
 	return o
 end
 
+-- function guy:loadfrom(res)
+-- 	self.img = res[self.path]
+-- end
+
 function guy:draw(x, y)
 	x = x or self.x or width/2
 	y = y or self.y or height/2
