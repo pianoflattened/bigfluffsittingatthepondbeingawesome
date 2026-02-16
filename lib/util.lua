@@ -1,3 +1,5 @@
+inspect = require 'lib.inspect'
+
 timer = { duration = 0 }
 timer.__index = timer
 function timer:new(duration)
@@ -19,6 +21,19 @@ end
 function timer:progress()
 	return math.max(math.min(1, self.clock/self.duration), 0)
 end
+
+
+enum = {}
+enum.__index = enum
+
+function enum:new(...)
+	local arg = {...}
+	local o = setmetatable({}, self)
+	for i, v in ipairs(arg) do o[v] = i end
+	o.__default = arg[0]
+	return o
+end
+
 
 function string.split(inputstr, sep)
 	local mp = "([^"..sep.."]+)"

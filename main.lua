@@ -1,9 +1,8 @@
-inspect = require 'lib.inspect'
-require 'util'
-require 'enum'
-require 'rect'
+-- inspect = require 'lib.inspect'
+require 'lib.util'
 require 'lib.tesound'
 
+require 'rect'
 require 'fish'
 require 'guy'
 require 'player'
