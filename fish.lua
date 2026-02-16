@@ -22,6 +22,8 @@ end
 
 function loadfish(attrs)
 	local fishes = {}
+
+	-- put the file in the folder -> it becomes a fish
 	local fishfiles = love.filesystem.getDirectoryItems("fish")
 	for i, v in ipairs(fishfiles) do
 		local path = "fish/"..v           --         54321
