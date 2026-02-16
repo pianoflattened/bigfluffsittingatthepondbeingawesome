@@ -4,24 +4,31 @@ function guy:new(path, ox, oy, x, y)
 	local o = setmetatable({}, self)
 	o.img = love.graphics.newImage(path)
 	o.path = path
-	o.ox = ox or 0
-	o.oox = ox or 0
-	o.oy = oy
-	o.ooy = oy
+	o.ox, o.oox = ox or 0, ox or 0
+	o.oy, o.ooy = oy or 0, oy or 0
 	o.width = o.img:getWidth()
 	o.height = o.img:getHeight()
 
 	o.r = 0
-	o.sx = 1
-	o.sy = 1
-	o.x = x or 0
-	o.y = y or 0
+	o.sx, o.sy = 1, 1
+	o.x, o.y = x or 0, y or 0
 	return o
 end
 
--- function guy:loadfrom(res)
--- 	self.img = res[self.path]
--- end
+function guy:newfromfish(fish, x, y, ox, oy)
+	local o = setmetatable({}, self)
+	local f = fishes[fish]
+	o.img = f.img
+	o.path = f.path
+	o.width = f.len
+	o.height = f.img:getHeight()
+	o.ox, o.oy = o.width/2, o.height/2
+	o.oox, o.ooy = o.ox, o.oy
+	o.r = 0
+	o.sx, o.sy = 1, 1
+	o.x, o.y = x or 0, y or 0
+	return o
+end
 
 function guy:draw(x, y)
 	x = x or self.x or width/2
@@ -52,6 +59,24 @@ function guy:rect()
 	return rect:new(self.x - self.ox, self.y - self.oy, self.width, self.height)
 end
 
+-- animation functions
+function guy:addframe(path) -- this should only be used in loading scripts
+	if not self.frames then self.frames = { default = self.img }  end
+	self.frames[stripfilename(path)] = love.graphics.newImage(path)
+end
+
+function guy:setframe(name)
+	if not name then name = "default" end
+	self.img = self.frames[name]
+end
+
+function guy:frame()
+	if not self.frames then return "default" end
+	for k, v in pairs(self.frames) do
+		if self.img == v then return k end
+	end
+	return "default"
+end
 
 effect = {}
 effect.__index = effect
