@@ -168,6 +168,8 @@ function fishinhole:update(dt)
 	-- here we check to see if the ripple collides with any of the splash points
 	foundanyspot = false
 	for idx, spot in ipairs(splash.spots) do
+		-- bug happens when rod collides with splash spots
+		-- so rewrite to PICK ONE collided spot to work on
 		local collides = ripple:rect():haspoint(spot.x, spot.y)
 		if collides then
 			foundanyspot = true
