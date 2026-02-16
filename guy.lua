@@ -4,6 +4,10 @@ function guy:new(path, ox, oy, x, y)
 	local o = setmetatable({}, self)
 	o.img = love.graphics.newImage(path)
 	o.path = path
+	
+	-- sometimes i have to mess w the offsets when i scale guys
+	-- to do it properly i store the original offsets and divide them to get a desired size
+	-- hence "oox" "ooy"
 	o.ox, o.oox = ox or 0, ox or 0
 	o.oy, o.ooy = oy or 0, oy or 0
 	o.width = o.img:getWidth()
