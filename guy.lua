@@ -119,3 +119,26 @@ end
 function drawrects(rs)
 	for _, r in ipairs(rs) do r:draw("line") end
 end
+
+
+-- USEFUL RECTS
+-- 	rect:new(-5, -5, width+10, 5) -- top
+-- 	rect:new(-5, -5, 5, height+10) -- left
+-- 	rect:new(width, -5, 5, height+10) -- right
+-- 	rect:new(-5, height, width+10, 5) -- bottom
+
+function domovement(player, rects, dt)
+	local dx, dy = 0, 0
+
+	if love.keyboard.isDown("up")    then dy = dy - player.speed*dt end
+	if love.keyboard.isDown("down")  then dy = dy + player.speed*dt end
+	if love.keyboard.isDown("left")  then dx = dx - player.speed*dt end
+	if love.keyboard.isDown("right") then dx = dx + player.speed*dt end
+
+	if player.rect:at(player.x + dx, player.y + dy):collidesrects(rects) then
+		if player.rect:at(player.x, player.y + dy):collidesrects(rects) then dy = 0 end
+		if player.rect:at(player.x + dx, player.y):collidesrects(rects) then dx = 0 end
+	end
+	
+	return dx, dy
+end

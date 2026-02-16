@@ -1,3 +1,9 @@
+-- USEFUL RECTS
+-- 	rect:new(-5, -5, width+10, 5) -- top
+-- 	rect:new(-5, -5, 5, height+10) -- left
+-- 	rect:new(width, -5, 5, height+10) -- right
+-- 	rect:new(-5, height, width+10, 5) -- bottom
+
 rect = {}
 rect.__index = rect
 function rect:new(ox, oy, dx, dy)
