@@ -10,11 +10,12 @@ https://love2d.org/wiki/Game_Distribution
 # HOW TO ADD A MINIGAME
 - make a folder in `scenes` w/ all ur resources
 - write the script
-	- requirements are that it returns a table with init, update(dt), and draw methods
-	- also suggested that the table has a basepath field & a leave method to clean up
+	- requirements are that it returns a table with `init`, `update(dt)`, and `draw` methods
+	- also suggested that the table has a `basepath` field & a `leave` method to clean up
 	- do not make any global variables that dont apply across every minigame. if u dk what to assign a variable to, assign it to the minigame's table
 	- current simplest example is `handshake.lua`
-- add a line in the table scene.lua that assigns your script file to a fish (use handshake as an example)
+- add a line in the table `scene.lua` that assigns your script file to a fish
+	- fish are automatically named internally according to their filenames in the `fish` folder, e.g., `fishes.friend` uses the image `fishes/friend.png`
 - use `gs.switch(fishinhole)` to return to the main game
 
 hope this helps
