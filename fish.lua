@@ -1,18 +1,31 @@
+scene = {
+	kinds = enum:new("minigame", "cutscene")
+}
+scene.__index = scene
+
+function scene:new(ref, kind)
+	local o = setmetatable({}, self)
+	o.ref = ref
+	-- specify as 'false' if is not a minigame. if nothing is given this resolves to true
+	o.kind = kind or scene.kinds.minigame
+	return o
+end
+
 fish = {}
 fish.__index = fish
 -- this passes name instead of calculating it from path b/c 
 -- loadfish needs to figure out the name before making the object
-function fish:new(path, name, len, points, rarity, scene)
+function fish:new(path, name, attrs)
 	local o = setmetatable({}, self)
 	o.path = path
 	o.name = name -- string.sub(string.sub(path, 6), 0, -5)
 	o.img = love.graphics.newImage(path)
-	o.len = len or o.img:getWidth()
-	o.scale = (len and len/o.img:getWidth()) or 100/math.min(o.img:getWidth(), o.img:getHeight())
-	o.points = points or 1
+	o.len = attrs.len or o.img:getWidth()
+	o.scale = (attrs.len and attrs.len/o.img:getWidth()) or 100/math.min(o.img:getWidth(), o.img:getHeight())
+	o.points = attrs.points or 1
 	-- (1/x)*(ln(x)+1)^2) without wacky behavior near 0
-	o.rarity = rarity or ((o.points + 11.54715)^(-0.772983))/(9.22967^(-1.10754))
-	o.scene = scene or function() return false end
+	o.rarity = attrs.rarity or ((o.points + 11.54715)^(-0.772983))/(9.22967^(-1.10754))
+	o.scene = attrs.scene or scene:new({}, scene.kinds.cutscene)
 	return o
 end
 
@@ -28,7 +41,7 @@ function loadfish(attrs)
 	for i, v in ipairs(fishfiles) do
 		local path = "fish/"..v           --         54321
 		local name = string.sub(v, 0, -5) -- cuts off .png
-		tmpfish = fish:new(path, name, unpack(attrs[name] or {}))
+		tmpfish = fish:new(path, name, attrs[name] or {})
 		fishes[name] = tmpfish
 	end
 	return fishes

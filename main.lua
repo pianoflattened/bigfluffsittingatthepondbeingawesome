@@ -14,6 +14,7 @@ points = 0
 fishes = {}
 width, height = 800, 600
 screenwidth, screenheight = 0, 0
+success = false
 
 function love.load()
 	love.graphics.setDefaultFilter("nearest")
@@ -26,10 +27,15 @@ function love.load()
 	winscale = math.min(screenwidth/width, screenheight/height)
 
 	-- accessing particular fish --> fishes.filename or fishes["filename"]
-	fishes = loadfish({}) -- all fish have default values for everything unless given in this table
-
+	-- all fish have default values for everything unless given in this table
+	fishes = loadfish({
+		friend = {
+			scene = scene:new(handshake)
+		}
+	})
+	
 	-- uses functions in fishinhole.lua to start out
-	gs.switch(handshake)
+	gs.switch(fishinhole)
 end
 
 function love.update(dt)

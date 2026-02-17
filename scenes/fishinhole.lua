@@ -58,6 +58,10 @@ function fishinhole:init()
 	crawdadhole = love.audio.newSource(self.basepath.."bigfluff.wav", "stream")
 end
 
+function fishinhole:leave() 
+	love.audio.stop(crawdadhole)
+end
+
 function fishinhole:update(dt)
 	fishspawnfreqtimer = fishspawnfreqtimer + dt
 	if not crawdadhole:isPlaying() then love.audio.play(crawdadhole) end
@@ -198,10 +202,20 @@ function fishinhole:update(dt)
 
 		if collidedspot.pulltimer:countdown(dt) then
 			table.insert(forremoval, collidedidx)
-			caughtfish = dictrandom(fishes)
+			local fishesinorder = keys(fishes)
+			local fishweights = {}
+			for _, k in ipairs(fishesinorder) do table.insert(fishweights, fishes[k].rarity) end
+			local fishname = weightedrandom(fishesinorder, fishweights)
+			caughtfish = fishes[fishname]
+			fishname = "friend"
 
-			local result = caughtfish:scene()
-			if result then print(result) end
+			if scenes[fishname] then
+				gs.switch(scenes[fishname])
+			end
+
+			if success then
+				points = points + caughtfish.points
+			end
 
 			-- put fish at beginning of curve
 			caughtfish.x, caughtfish.y = collidedspot.x, collidedspot.y
@@ -221,54 +235,6 @@ function fishinhole:update(dt)
 		line.speed = 400
 		fisher.grunting = false
 	end
-
--- 	foundanyspot = false
--- 	for idx, spot in ipairs(splash.spots) do
--- 		-- bug happens when rod collides with splash spots
--- 		-- so rewrite to PICK ONE collided spot to work on
--- 		local collides = ripple:rect():haspoint(spot.x, spot.y)
--- 		if collides then
--- 			foundanyspot = true
--- 			if not spot.snagged then
--- 				spot.snagged = true -- start the timer for the hold shift to pull mechanic
--- 				if not spot.pulltimer then spot.pulltimer = timer:new(1) end
--- 				line.speed = 0
--- 			end
--- 
--- 			if line.reeling then -- i.e. if shift is being held
--- 				if not fisher.grunting then -- play the sound and make the line jitter
--- 					local grunter = trandom({"alan", "macy", "jack", "june"})
--- 					TEsound.play(self.basepath..grunter.."grunt.mp3", "static", 1)
--- 					fisher.grunting = true
--- 				end
--- 				
--- 				if spot.pulltimer:countdown(dt) then -- count down. u get the fish when the timer hits zero
--- 					table.insert(forremoval, idx)
--- 					caughtfish = dictrandom(fishes)
--- 					
--- 					local result = caughtfish:scene() -- SWITCH TO THE FISH'S LEVEL
--- 					if result then print(result) end
--- 					
--- 					-- put fish at beginning of curve
--- 					caughtfish.x, caughtfish.y = spot.x, spot.y
--- 					caughtfish.ox, caughtfish.oy = spot.x, spot.y
--- 					-- amount of time spent following the catch curve
--- 					caughtfish.timer = timer:new(1.5)
--- 
--- 					-- makes sure the fish is drawn
--- 					caughtfish.show = true
--- 					-- stop playing the sound & let the line move
--- 					line.speed = 400
--- 					fisher.grunting = false
--- 				end
--- 			end
--- 		end
--- 	end
--- 
--- 	if not foundanyspot then
--- 		line.speed = 400
--- 		fisher.grunting = false
--- 	end
 
 	-- sort greatest to least so indices dont get fd up
 	table.sort(forremoval, function(a, b) return a > b end)

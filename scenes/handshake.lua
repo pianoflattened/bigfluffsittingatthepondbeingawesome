@@ -3,20 +3,19 @@ handshake = {
 	timeaccum = 0,
 	shakelist = {},
 	camwalls = {},
-	doesntcounttimer = timer:new(0.3)
+	doesntcounttimer = timer:new(0.3),
+	failcount = 0,
+	fail = false,
 }
 
 function handshake:init()
 	friend = guy:new(self.basepath.."friendnohand.png", 0, 0, 229, 253)
 	friend.opacity = 0
 	friend.reachtimer = timer:new(0.3)
-	-- friend.sx = -1
 
-	friendhand = guy:new(self.basepath.."friendhand.png", 0, 0, 231, 357)
+	friendhand = guy:new(self.basepath.."friendhand.png", 84, 96, 315, 453) -- 315 453
 	friendhand.show = false
 	friendhand.rect = rect:new(315, 453, 63, 46)
-	friendhand.dy = 0
-	-- friendhand.sx = -1
 	
 	friendhouse = level:new(self.basepath.."friendshouse.png", {
 		rect:new(0, 0, 300, 600),
@@ -32,24 +31,27 @@ function handshake:init()
 	epiceurobeat = love.audio.newSource(self.basepath.."epiceurobeat.mp3", "stream")
 end
 
-function handshake:enter()
+function handshake:leave()
+	love.audio.stop(epiceurobeat)
+	camera:reset()
+
 	self.timeaccum = 0
 	self.shakelist = {}
 	self.camwalls = {}
 	self.doesntcounttimer:reset()
-	
+	self.failcount = 0
+
 	friend.opacity = 0
 	friend.reachtimer:reset()
 
 	friendhand.show = false
 
 	dooropens.show = false
+
+	arm.x = 0
+	arm.y = 77
 	arm.speed = 0
 	arm:setframe()
-end
-
-function handshake:leave()
-	camera:reset()
 end
 
 function handshake:update(dt)
@@ -63,58 +65,60 @@ function handshake:update(dt)
 	if love.keyboard.isDown("right") then dx = dx + arm.speed*dt end
 
 	-- arm shake
-	local jx = math.random(arm.speed*2/3)*(love.math.random(3)-2)
-	local jy = math.random(arm.speed*2/3)*(love.math.random(3)-2)
+	local jx = math.random(2*dt*arm.speed)*(love.math.random(3)-2)
+	local jy = math.random(5*dt*arm.speed)*(love.math.random(3)-2)
 
+	self.fail = false
 	if love.keyboard.isDown("rshift") and arm.frame == "armwarts" and 
 	   arm.rect:at(arm.x + dx + jx, arm.y + dy + jy):collides(friendhand.rect) then
+		friendhand.y = arm.y + dy - 17
+
 		jx = 1/16*jx
 		jy = 1/16*jy
 		dx = 0
-
-		local fail = false
+		
 		-- start shaking
 		if love.keyboard.isDown("down") == love.keyboard.isDown("up") then
 			-- clear progress if no shaking has been inputted for 0.5 seconds
-			if self.doesntcounttimer:countdown(dt) then fail = true end
+			if self.doesntcounttimer:countdown(dt) then self.fail = true end
+			if #self.shakelist > 0 then
+				local last = self.shakelist[#self.shakelist]
+				last.duration = last.duration + dt
+			end
 		else -- if ONLY down or ONLY up is pressed
-			dy = dy*3 -- let hand move faster up & down
-			friendhand.dy = dy -- friend's hand follows
+			dy = dy*2 -- let hand move faster up & down
 			
 			self.doesntcounttimer:reset()
 			local shake = { duration = 0 } -- initialize object for shake stack
 			if love.keyboard.isDown("down") then shake.direction = "down" end
 			if love.keyboard.isDown("up") then shake.direction = "up" end
 			
-			if #self.shakelist == 0 then table.insert(self.shakelist, shake) end
+			if #self.shakelist == 0 then 
+				table.insert(self.shakelist, shake) 
+			end
 			local last = self.shakelist[#self.shakelist]
 
 			-- if current direction is opposite of last 
 			-- & we were going in current direction for a good amt of time
 			-- add it to the stack
-			if last.direction ~= shake.direction then
-				if last.duration > 0.5 then
-					table.insert(self.shakelist, shake)
-				else fail = true end
-			else
+			if last.direction == shake.direction then
 				last.duration = last.duration + dt
-				if last.duration > 2 then fail = true end
+				if last.duration > 0.8 then self.fail = true end
+			else
+				if last.duration > 0.25 then
+					table.insert(self.shakelist, shake)
+				else self.fail = true end
 			end
 		end
 	end
 
-	if fail then
+	-- doing a fail when list is empty -> fails every dt after one fail
+	if self.fail and #self.shakelist > 0 then
 		self.shakelist = {}
-		friendhand.dy = 0
-		if #TEsound.findTag("splat") == 0 then 
-			TEsound.play(self.basepath.."splat.mp3", "static", "splat") 
-		end
+		TEsound.play(self.basepath.."splat.mp3", "static", "splat")
+		self.failcount = self.failcount + 1
 	end
 
-	if #self.shakelist == 6 then
-		gs.switch(fishinhole)
-	end
-	
 	dx = dx + jx
 	dy = dy + jy
 
@@ -145,7 +149,7 @@ function handshake:update(dt)
 		if friend.opacity == 1 and not friendhand.show then
 			if friend.reachtimer:countdown(dt) then 
 				friendhand.show = true
-				arm.speed = 10
+				arm.speed = 50
 			end
 		end
 		
@@ -161,10 +165,23 @@ function handshake:update(dt)
 		arm:setframe("armwarts")
 		camera:zoomTo(4)
 		camera:panTo(300, 416)
+
+		-- put a bunch of invisible walls so u cant leave the area
 		self.camwalls = rect:new(camera.zoomx, camera.zoomy-50, width/camera.zoom, height/camera.zoom+100):wallsaround(5)
 	end
 
 	self.timeaccum = self.timeaccum + dt
+
+	if #self.shakelist == 6 then
+		success = true
+		gs.switch(fishinhole)
+	end
+
+	if self.failcount > 3 then
+		success = false
+		print("fail!")
+		gs.switch(fishinhole)
+	end
 end
 
 function handshake:draw()
@@ -173,7 +190,7 @@ function handshake:draw()
 	love.graphics.setColor(1, 1, 1, friend.opacity)
 	friend:draw()
 	if friendhand.show then 
-		friendhand:draw(friendhand.x, friendhand.y + friendhand.dy)
+		friendhand:draw(friendhand.x, friendhand.y)
 		friendhand.rect:draw("line")
 	end
 	arm:draw()
