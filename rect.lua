@@ -31,6 +31,16 @@ function rect:at(x, y)
 	return c
 end
 
+function rect:center()
+	return {self.ox + self.dx/2, self.oy + self.dy/2}
+end
+
+function distance(p1, p2)
+	local x1, y1 = table.unpack(p1)
+	local x2, y2 = table.unpack(p2)
+	return math.sqrt((x2-x1)^2 + (y2-y1)^2)
+end
+
 function rect:haspoint(x, y)
 	return x > self.x + self.ox and x < self.x + self.ox + self.dx and y > self.y + self.oy and y < self.y + self.oy + self.dy
 end

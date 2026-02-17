@@ -18,9 +18,10 @@ function handshake:init()
 	dooropens = guy:new(self.basepath.."dooropens.png")
 	dooropens.show = false
 
-	arm = level:new(self.basepath.."arm.png", 0, 77, 793, 520)
+	arm = guy:new(self.basepath.."arm.png", 0, 77, 600, 520)
 	arm:addframe(self.basepath.."armwarts.png")
 	arm.speed = 0
+	arm.rect = rect:new(81, -27, 12, 59)
 	
 	epiceurobeat = love.audio.newSource(self.basepath.."epiceurobeat.mp3", "stream")
 end
@@ -35,17 +36,29 @@ function handshake:enter()
 	dooropens.show = false
 end
 
+function handshake:leave()
+	resetcamera()
+end
+
 function handshake:update(dt)
 	if not epiceurobeat:isPlaying() then love.audio.play(epiceurobeat) end
 
-	local dx, dy = domovement(arm, {
-		rect:new(-100, -100, width, 100),
-		rect:new(-100, -100, 100, height),
-		rect:new(width, 0, 100, height),
-		rect:new(0, height, width, 100),
-		table.unpack(friendhouse.rects)
-	}, dt)
-	
+	local dx, dy = 0, 0
+
+	if love.keyboard.isDown("up")    then dy = dy - arm.speed*dt end
+	if love.keyboard.isDown("down")  then dy = dy + arm.speed*dt end
+	if love.keyboard.isDown("left")  then dx = dx - arm.speed*dt end
+	if love.keyboard.isDown("right") then dx = dx + arm.speed*dt end
+
+	-- arm shake
+	if love.math.random(2) == 1 then dx = dx + math.random(arm.speed*3/4)*(love.math.random(3)-2) end
+	if love.math.random(2) == 1 then dy = dy + math.random(arm.speed*3/4)*(love.math.random(3)-2) end
+
+	if arm.rect:at(arm.x + dx, arm.y + dy):collidesrects(friendhouse.rects) then
+		if arm.rect:at(arm.x, arm.y + dy):collidesrects(friendhouse.rects) then dy = 0 end
+		if arm.rect:at(arm.x + dx, arm.y):collidesrects(friendhouse.rects) then dx = 0 end
+	end
+
 	arm.x = arm.x + dx
 	arm.y = arm.y + dy
 	
@@ -64,16 +77,22 @@ function handshake:update(dt)
 			if friend.reachtimer:countdown(dt) then 
 				friend:setframe()
 				friend.reaching = true
-				arm.speed = 100
+				arm.speed = 10
 			end
 		end
 		
-		if love.math.random(50) == 1 and #TEsound.findTag("heartbeat") == 0 then 
+		if love.math.random(30) == 1 and #TEsound.findTag("heartbeat") == 0 then 
 			TEsound.play(self.basepath.."heartbeat.mp3", "static", "heartbeat") end
-		if love.math.random(40) == 1 and #TEsound.findTag("headshakes") == 0 then 
-			TEsound.play(self.basepath.."headshakes.mp3", "static", "headshakes") end
-		if love.math.random(50) == 1 and #TEsound.findTag("breathing") == 0 then 
+		if love.math.random(30) == 1 and #TEsound.findTag("teethchatter") == 0 then 
+			TEsound.play(self.basepath.."teethchatter.mp3", "static", "teethchatter") end
+		if love.math.random(30) == 1 and #TEsound.findTag("breathing") == 0 then 
 			TEsound.play(self.basepath.."breathing.mp3", "static", "breathing") end
+	end
+
+	if arm.x <= 388 then -- zoom in
+		arm:setframe("armwarts")
+		zoom = 4
+		zoomx, zoomy = 300, 416
 	end
 
 	self.timeaccum = self.timeaccum + dt
@@ -84,5 +103,6 @@ function handshake:draw()
 	if dooropens.show then dooropens:draw() end
 	love.graphics.setColor(1, 1, 1, friend.opacity)
 	friend:draw()
+	arm:draw()
 	love.graphics.setColor(1, 1, 1, 1)
 end

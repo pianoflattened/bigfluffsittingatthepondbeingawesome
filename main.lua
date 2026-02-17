@@ -5,20 +5,26 @@ require 'lib.tesound'
 require 'rect'
 require 'fish'
 require 'guy'
-require 'player'
 require 'scene'
+require 'camera'
 
 -- numbers start at 53, 69 on alarm
 -- hammer starts at 71, 20
 points = 0
 fishes = {}
 width, height = 800, 600
+screenwidth, screenheight = 0, 0
+zoom = 1
+zoomx, zoomy = 0, 0
 function love.load()
-	width, height = love.graphics.getDimensions()
 	love.graphics.setDefaultFilter("nearest")
 	love.graphics.setLineStyle("rough")
 	love.graphics.setBackgroundColor(1, 1, 1)
-	canvas = love.graphics.newCanvas(width, height)
+	canvas = love.graphics.newCanvas(800, 600)
+
+	-- love.window.setFullscreen(true, "desktop")
+	screenwidth, screenheight = love.graphics.getDimensions()
+	winscale = math.min(screenwidth/width, screenheight/height)
 
 	-- accessing particular fish --> fishes.filename or fishes["filename"]
 	fishes = loadfish({}) -- all fish have default values for everything unless given in this table
@@ -47,5 +53,6 @@ function love.draw()
 
 	love.graphics.setCanvas()
 	love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
-	love.graphics.draw(canvas, 0, 0, 0, scale, scale)
+	
+	love.graphics.draw(canvas, 0-(zoomx*zoom), 0-(zoomy*zoom), 0, winscale*zoom, winscale*zoom)
 end
