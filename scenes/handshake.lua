@@ -37,7 +37,7 @@ end
 
 function handshake:leave()
 	love.audio.stop(epiceurobeat)
-	TEsound.stop("airplane")
+	TEsound.stop("airplane", "splat", "heartbeat", "chatter", "breathing")
 	camera:reset()
 
 	self.timeaccum = 0
@@ -57,6 +57,9 @@ function handshake:leave()
 	arm.y = 77
 	arm.speed = 0
 	arm:setframe()
+
+	airplane.x = 800
+	airplane.show = false
 end
 
 function handshake:update(dt)
