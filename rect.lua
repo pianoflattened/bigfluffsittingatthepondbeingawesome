@@ -17,6 +17,15 @@ function rect:new(ox, oy, dx, dy)
 	return o
 end
 
+function rect:wallsaround(thickness)
+	return {
+		rect:new(self.ox-thickness, self.oy-thickness, self.dx+(2*thickness), thickness),
+		rect:new(self.ox-thickness, self.oy-thickness, thickness, self.dy+(2*thickness)),
+		rect:new(self.ox + self.dx, self.oy-thickness, thickness, self.dy+(2*thickness)),
+		rect:new(self.ox-thickness, self.oy + self.dy, self.dx + (2*thickness), thickness),
+	}
+end
+
 function rect:area()
 	return self.dx * self.dy
 end

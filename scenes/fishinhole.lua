@@ -64,11 +64,13 @@ function fishinhole:update(dt)
 
 	-- checks arrow keys & collision
 	local dx, dy = domovement(fisher, {
-		rect:new(-100, -100, width, 100),
-		rect:new(-100, -100, 100, height),
-		rect:new(width, 0, 100, height),
+		rect:new(-5, -5, width+210, 5), -- top
+		rect:new(-5, -5, 5, height+10), -- left
+		rect:new(width+200, -5, 5, height+10), -- right
+		rect:new(width, height, width+210, 5), -- bottom
 		table.unpack(lake.rects)
-	}, dt)
+	}, dt, function (x, dt, s) return x + dt*s end)
+	
 	fisher.x = fisher.x + dx
 	fisher.y = fisher.y + dy
 

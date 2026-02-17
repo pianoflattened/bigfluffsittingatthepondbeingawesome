@@ -14,8 +14,7 @@ points = 0
 fishes = {}
 width, height = 800, 600
 screenwidth, screenheight = 0, 0
-zoom = 1
-zoomx, zoomy = 0, 0
+
 function love.load()
 	love.graphics.setDefaultFilter("nearest")
 	love.graphics.setLineStyle("rough")
@@ -30,7 +29,7 @@ function love.load()
 	fishes = loadfish({}) -- all fish have default values for everything unless given in this table
 
 	-- uses functions in fishinhole.lua to start out
-	gs.switch(fishinhole)
+	gs.switch(handshake)
 end
 
 function love.update(dt)
@@ -54,5 +53,5 @@ function love.draw()
 	love.graphics.setCanvas()
 	love.graphics.setBackgroundColor(0.5, 0.5, 0.5)
 	
-	love.graphics.draw(canvas, 0-(zoomx*zoom), 0-(zoomy*zoom), 0, winscale*zoom, winscale*zoom)
+	love.graphics.draw(canvas, 0-(camera.zoomx*camera.zoom), 0-(camera.zoomy*camera.zoom), 0, winscale*camera.zoom, winscale*camera.zoom)
 end

@@ -65,21 +65,17 @@ end
 
 -- animation functions
 function guy:addframe(path) -- this should only be used in loading scripts
-	if not self.frames then self.frames = { default = self.img }  end
+	if not self.frames then 
+		self.frames = { default = self.img }
+		self.frame = "default" 
+	end
 	self.frames[stripfilename(path)] = love.graphics.newImage(path)
 end
 
 function guy:setframe(name)
 	if not name then name = "default" end
 	self.img = self.frames[name]
-end
-
-function guy:frame()
-	if not self.frames then return "default" end
-	for k, v in pairs(self.frames) do
-		if self.img == v then return k end
-	end
-	return "default"
+	self.frame = name
 end
 
 effect = {}
@@ -127,13 +123,15 @@ end
 -- 	rect:new(width, -5, 5, height+10) -- right
 -- 	rect:new(-5, height, width+10, 5) -- bottom
 
-function domovement(player, rects, dt)
+-- p is a function whose signature ought to be
+-- p(x0, dt, speed) -> x1
+function domovement(player, rects, dt, p)
 	local dx, dy = 0, 0
 
-	if love.keyboard.isDown("up")    then dy = dy - player.speed*dt end
-	if love.keyboard.isDown("down")  then dy = dy + player.speed*dt end
-	if love.keyboard.isDown("left")  then dx = dx - player.speed*dt end
-	if love.keyboard.isDown("right") then dx = dx + player.speed*dt end
+	if love.keyboard.isDown("up")    then dy = p(dy, dt, -player.speed) end
+	if love.keyboard.isDown("down")  then dy = p(dy, dt, player.speed) end
+	if love.keyboard.isDown("left")  then dx = p(dx, dt, -player.speed) end
+	if love.keyboard.isDown("right") then dx = p(dx, dt, player.speed) end
 
 	if player.rect:at(player.x + dx, player.y + dy):collidesrects(rects) then
 		if player.rect:at(player.x, player.y + dy):collidesrects(rects) then dy = 0 end
