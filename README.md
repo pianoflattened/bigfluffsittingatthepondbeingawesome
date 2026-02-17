@@ -9,7 +9,7 @@ https://love2d.org/wiki/Game_Distribution
 
 # HOW TO ADD A MINIGAME
 - make a folder in `scenes` w/ all ur resources
-- write the script
+- write the minigame
 	- requirements are that it returns a table with `init`, `update(dt)`, and `draw` methods & at some point uses `gs.switch(fishinhole)` to return to the main game
 	- also suggested that the table has a `basepath` field & a `leave` method to clean up
 	- do not make any global variables that dont apply across every minigame. if u dk what to assign a variable to, assign it to the minigame's table
