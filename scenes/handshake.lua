@@ -65,8 +65,8 @@ function handshake:update(dt)
 	if love.keyboard.isDown("right") then dx = dx + arm.speed*dt end
 
 	-- arm shake
-	local jx = math.random(2*dt*arm.speed)*(love.math.random(3)-2)
-	local jy = math.random(5*dt*arm.speed)*(love.math.random(3)-2)
+	local jx = math.random(10*dt*arm.speed)*(love.math.random(3)-2)
+	local jy = math.random(10*dt*arm.speed)*(love.math.random(3)-2)
 
 	self.fail = false
 	if love.keyboard.isDown("rshift") and arm.frame == "armwarts" and 
@@ -197,3 +197,5 @@ function handshake:draw()
 	arm.rect:at(arm.x, arm.y):draw("line")
 	love.graphics.setColor(1, 1, 1, 1)
 end
+
+return handshake

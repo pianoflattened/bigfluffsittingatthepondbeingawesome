@@ -207,8 +207,7 @@ function fishinhole:update(dt)
 			for _, k in ipairs(fishesinorder) do table.insert(fishweights, fishes[k].rarity) end
 			local fishname = weightedrandom(fishesinorder, fishweights)
 			caughtfish = fishes[fishname]
-			fishname = "friend"
-
+			
 			if scenes[fishname] then
 				gs.switch(scenes[fishname])
 			end
