@@ -35,7 +35,7 @@ function love.load()
 	})
 	
 	-- uses functions in fishinhole.lua to start out
-	gs.switch(fishinhole)
+	gs.switch(handshake)
 end
 
 function love.update(dt)

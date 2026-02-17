@@ -27,12 +27,17 @@ function handshake:init()
 	arm:addframe(self.basepath.."armwarts.png")
 	arm.speed = 0
 	arm.rect = rect:new(81, -27, 12, 59)
+
+	airplane = guy:new(self.basepath.."airplane.png", 0, 0, 800, 20)
+	airplane.speed = 800/30
+	airplane.show = false
 	
 	epiceurobeat = love.audio.newSource(self.basepath.."epiceurobeat.mp3", "stream")
 end
 
 function handshake:leave()
 	love.audio.stop(epiceurobeat)
+	TEsound.stop("airplane")
 	camera:reset()
 
 	self.timeaccum = 0
@@ -56,6 +61,18 @@ end
 
 function handshake:update(dt)
 	if not epiceurobeat:isPlaying() then love.audio.play(epiceurobeat) end
+
+	if not airplane.show and love.math.random(200) == 1 then 
+		airplane.show = true 
+		TEsound.play(self.basepath.."airplane.mp3", "static", "airplane")
+	end
+
+	if airplane.show then
+		airplane.x = airplane.x - airplane.speed*dt
+		if airplane.x == -airplane.width then
+			airplane.show = false
+		end
+	end
 
 	local dx, dy = 0, 0
 	
@@ -187,14 +204,12 @@ end
 function handshake:draw()
 	friendhouse:draw()
 	if dooropens.show then dooropens:draw() end
+	if airplane.show then airplane:draw() end
+	
 	love.graphics.setColor(1, 1, 1, friend.opacity)
 	friend:draw()
-	if friendhand.show then 
-		friendhand:draw(friendhand.x, friendhand.y)
-		friendhand.rect:draw("line")
-	end
+	if friendhand.show then friendhand:draw(friendhand.x, friendhand.y) end
 	arm:draw()
-	arm.rect:at(arm.x, arm.y):draw("line")
 	love.graphics.setColor(1, 1, 1, 1)
 end
 
