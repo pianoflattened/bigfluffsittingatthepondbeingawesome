@@ -65,9 +65,13 @@ end
 
 -- animation functions
 function guy:addframe(path) -- this should only be used in loading scripts
-	if not self.frames then 
-		self.frames = { default = self.img }
-		self.frame = "default" 
+	if not self.frames then
+		local defpath = stripfilename(self.path)
+		self.frames = { 
+			default = self.img,
+			[defpath] = self.img,
+		}
+		self.frame = "default"
 	end
 	self.frames[stripfilename(path)] = love.graphics.newImage(path)
 end

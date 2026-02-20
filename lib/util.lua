@@ -1,4 +1,5 @@
 inspect = require 'lib.inspect'
+-- inspect = require 'inspect'
 
 timer = { duration = 0 }
 timer.__index = timer
@@ -34,6 +35,34 @@ function enum:new(...)
 	return o
 end
 
+function string.split(value, separator)
+	limit = limit == nil and math.huge or limit
+	if separator == nil or value == "" then return {value} end
+	local ret = {}
+	-- If separator is an empty string, str is converted to an array of characters
+	if separator == "" then
+	    for i = 1, #value do
+	        ret[i] = string.sub(value, i, i)
+	    end
+	    return ret
+	end
+
+	-- separator is a string
+	local i = 1
+	local start = 1
+	local first, last = string.find(value, separator, start, true)
+	while first and i <= limit do
+	    ret[i] = string.sub(value, start, first - 1)
+	    start = last + 1
+	    first, last = string.find(value, separator, start, true)
+	    i = i + 1
+	end
+	if #ret < limit then
+	    ret[i] = string.sub(value, start)
+	end
+
+	return ret
+end
 
 function string.split(inputstr, sep)
 	local mp = "([^"..sep.."]+)"
@@ -46,6 +75,26 @@ function string.split(inputstr, sep)
 	local t = {}
 	for str in string.gmatch(inputstr, mp) do table.insert(t, str) end
 	return t
+end
+
+function string.startswith(str, test, start)
+	local o = string.sub(str, start, #test+start-1)
+	print(o, test)
+	return o == test
+end
+
+function string.endswith(str, ending)
+	return ending == "" or string.sub(str, -#ending) == ending
+end
+
+function string.join(t, sep)
+	local o = ""
+	for i = 1, #t-1 do
+
+	end
+	for i, v in ipairs(t) do
+		o = o..v
+	end
 end
 
 

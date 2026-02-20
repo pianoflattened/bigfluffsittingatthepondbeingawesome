@@ -29,6 +29,7 @@ raycasttest = {
 		rot = 0,
 		rotspeed = math.pi/2,
 	},
+	samtimer = timer:new(2)
 }
 
 function raycasttest:init()
@@ -80,6 +81,11 @@ function raycasttest:update(dt)
 	local nexty = math.floor(self.me.y + dy)
 	if self.level[nexty][math.floor(self.me.x)] == 0 then
 		self.me.y = self.me.y + dy
+	end
+
+	if self.samtimer:countdown(dt) then
+		sam:say("in nineteen eighty-eight everybody's feeling great")
+		self.samtimer:reset()
 	end
 end
 

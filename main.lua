@@ -1,12 +1,15 @@
 -- inspect = require 'lib.inspect'
 require 'lib.util'
 require 'lib.tesound'
+require 'lib.sam'
 
 require 'rect'
 require 'fish'
 require 'guy'
 require 'scene'
 require 'camera'
+
+require 'ffi'
 
 -- numbers start at 53, 69 on alarm
 -- hammer starts at 71, 20
@@ -28,14 +31,11 @@ function love.load()
 
 	-- accessing particular fish --> fishes.filename or fishes["filename"]
 	-- all fish have default values for everything unless given in this table
-	fishes = loadfish({
-		friend = {
-			scene = scene:new(handshake)
-		}
-	})
+	fishes = loadfish({})
+	sam:outpath("lib/samout.wav")
 	
 	-- uses functions in fishinhole.lua to start out
-	gs.switch(raycasttest)
+	gs.switch(typer)
 end
 
 function love.update(dt)
