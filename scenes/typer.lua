@@ -16,8 +16,9 @@ typer = {
 		talking = true,
 		timer = timer:new(0.28),
 		saywordtimer = timer:new(12),
-		wordboxtimer = timer:new(2.5),
+		wordboxtimer = timer:new(1),
 		wordboxshow = true,
+		armdowntimer = timer:new(0.5),
 	},
 	points = {},
 	keyquads = {
@@ -238,7 +239,11 @@ function typer:update(dt)
 		elseif host.frame == "hostclosed2" then host:setframe("hostopen2") 
 		else host:setframe("hostopen2") end
 		self.talkanim.timer:reset()
-	elseif not self.talkanim.talking then host:setframe() end
+		self.talkanim.armdowntimer:reset()
+	elseif not self.talkanim.talking then 
+		if self.talkanim.armdowntimer:countdown(dt) then host:setframe("hostswat2")
+		else host:setframe() end
+	end
 
 	if #self.letters > 0 and self.lettertimer:countdown(dt) then
 		for _, l in ipairs(self.letters) do

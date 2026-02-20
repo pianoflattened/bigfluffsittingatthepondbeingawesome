@@ -80,7 +80,6 @@ end
 
 function string.startswith(str, test, start)
 	local o = string.sub(str, start, #test+start-1)
-	print(o, test)
 	return o == test
 end
 
