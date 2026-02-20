@@ -1,3 +1,5 @@
+require 'lib.inspect'
+
 --[[
 Copyright (c) 2010-2013 Matthias Richter
 
@@ -51,6 +53,7 @@ end
 function GS.switch(to, ...)
 	assert(to, "Missing argument: Gamestate to switch to")
 	assert(to ~= GS, "Can't call switch with colon operator")
+	print(inspect(stack))
 	;(stack[#stack].leave or __NULL__)(stack[#stack])
 	return change_state(0, to, ...)
 end
@@ -58,6 +61,7 @@ end
 function GS.push(to, ...)
 	assert(to, "Missing argument: Gamestate to switch to")
 	assert(to ~= GS, "Can't call push with colon operator")
+	print(inspect(stack))
 	return change_state(1, to, ...)
 end
 
@@ -67,10 +71,12 @@ function GS.pop(...)
 	stack[#stack] = nil
 	;(pre.leave or __NULL__)(pre)
 	state_is_dirty = true
+	print(inspect(stack))
 	return (to.resume or __NULL__)(to, pre, ...)
 end
 
 function GS.current()
+	print(inspect(stack))
 	return stack[#stack]
 end
 
@@ -95,6 +101,7 @@ function GS.registerEvents(callbacks)
 			return GS[f](...)
 		end
 	end
+	print(inspect(stack))
 end
 
 -- forward any undefined functions

@@ -27,3 +27,9 @@ function sam:say(input)
 	if self.source == nil then self.source = love.audio.newSource(self.path, "stream") end
 	love.audio.play(self.source)
 end
+
+function sam:talking()
+	if self.source then
+		return self.source:isPlaying()
+	else return false end
+end

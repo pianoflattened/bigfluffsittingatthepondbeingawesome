@@ -38,6 +38,10 @@ function love.load()
 	gs.switch(typer)
 end
 
+function love.keyreleased(...)
+	gs.keyreleased(...)
+end
+
 function love.update(dt)
 	gs.update(dt)
 

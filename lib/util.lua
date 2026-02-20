@@ -1,4 +1,5 @@
 inspect = require 'lib.inspect'
+json = require 'lib.json'
 -- inspect = require 'inspect'
 
 timer = { duration = 0 }
@@ -106,6 +107,15 @@ function copy(obj, seen)
 	s[obj] = res
 	for k, v in pairs(obj) do res[copy(k, s)] = copy(v, s) end
 	return res
+end
+
+function map(list, fn)
+	local t = {}
+	if type(fn) == "function" then
+		for k, v in pairs(list) do t[k] = fn(v) end
+	else for k, v in pairs(list) do t[k] = fn end
+	end
+	return t
 end
 
 function reduce(list, fn, init)
