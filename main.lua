@@ -35,7 +35,7 @@ function love.load()
 	sam:outpath("lib/samout.wav")
 	
 	-- uses functions in fishinhole.lua to start out
-	gs.switch(typer)
+	gs.switch(fishinhole)
 end
 
 function love.keyreleased(...)

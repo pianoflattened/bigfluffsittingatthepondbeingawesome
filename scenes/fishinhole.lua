@@ -208,13 +208,8 @@ function fishinhole:update(dt)
 			local fishname = weightedrandom(fishesinorder, fishweights)
 			caughtfish = fishes[fishname]
 			
-			if scenes[fishname] then
-				gs.switch(scenes[fishname])
-			end
-
-			if success then
-				points = points + caughtfish.points
-			end
+			if scenes[fishname] then gs.switch(scenes[fishname]) end
+			points = points + caughtfish.points
 
 			-- put fish at beginning of curve
 			caughtfish.x, caughtfish.y = collidedspot.x, collidedspot.y

@@ -163,6 +163,8 @@ function typer:keyreleased(key, code)
 end
 
 function typer:update(dt)
+	if self.wins >= 15 then gs.switch(fishinhole) end
+
 	if not typermusic:isPlaying() then love.audio.play(typermusic) end
 	if not noises:isPlaying() then 
 		noises:setVolume(math.max(0.9*noises:getVolume(), 0.75))
