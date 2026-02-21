@@ -302,3 +302,5 @@ function typer:draw()
 	love.graphics.print(inspect(self.cloudanim.ratio), 20, 20, 0, 2, 2)
 	love.graphics.setColor(1, 1, 1)
 end
+
+return typer

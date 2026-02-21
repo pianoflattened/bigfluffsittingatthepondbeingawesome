@@ -35,6 +35,10 @@ function handshake:init()
 	epiceurobeat = love.audio.newSource(self.basepath.."epiceurobeat.mp3", "stream")
 end
 
+function handshake:enter()
+	self.camwalls = {}
+end
+
 function handshake:leave()
 	love.audio.stop(epiceurobeat)
 	TEsound.stop("airplane", "splat", "heartbeat", "chatter", "breathing")
