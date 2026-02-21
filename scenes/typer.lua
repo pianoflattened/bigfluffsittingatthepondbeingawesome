@@ -32,12 +32,19 @@ typer = {
 	word = "",
 	wordx = 0,
 	wordy = 0,
+	samwords = {},
 }
 
 function typer:init()
 	self.bgs = {}
 	local wordsjson = love.filesystem.read(self.basepath.."words.json")
 	self.wordlist = json.decode(wordsjson)
+
+	local samfiles = love.filesystem.getDirectoryItems(self.basepath.."samwords/")
+	for _, wav in ipairs(samfiles) do
+		local word = stripfilename(wav)
+		self.samwords[word] = love.audio.newSource(self.basepath.."samwords/"..wav, "static")
+	end
 
 	host = guy:new(self.basepath.."hostflex2.png", 179, 263, 400, 300)
 	host:addframe(self.basepath.."hostclosed2.png")
@@ -75,9 +82,11 @@ function typer:enter()
 	noises = love.audio.newSource(self.basepath.."eb.mp3", "stream")
 end
 
-function typer:leave()
+function typer:leave() 
 	love.audio.stop(typermusic)
 	love.audio.stop(noises)
+	TEsound.stop(typermusic)
+	TEsound.stop(noises)
 end
 
 local function avg(ratio)
@@ -97,24 +106,6 @@ local function iscoprime(a, b)
 	end
 	return a == 1
 end
-
--- local function nextcoprimes(ratio)
--- 	local a, b = table.unpack(ratio)
--- 	local ra, rb = a, b
--- 	
--- 	repeat ra = ra + 1 until iscoprime(ra, b)
--- 	repeat rb = rb + 1 until iscoprime(a, rb)
--- 	return ra, rb
--- end
--- 
--- local function prevcoprimes(ratio)
--- 	local a, b = table.unpack(ratio)
--- 	local ra, rb = a, b
--- 
--- 	if a ~= 1 then repeat ra = ra - 1 until iscoprime(ra, b) end
--- 	if b ~= 1 then repeat rb = rb - 1 until iscoprime(a, rb) end 
--- 	return ra, rb
--- end
 
 function typer:keyreleased(key, code)
 	local quadrant = self.keyquads[key]
@@ -164,12 +155,13 @@ function typer:keyreleased(key, code)
 end
 
 function typer:update(dt)
-	if self.wins >= 15 then gs.switch(fishinhole) end
-
-	if not typermusic:isPlaying() then love.audio.play(typermusic) end
-	if not noises:isPlaying() then 
-		noises:setVolume(math.max(0.9*noises:getVolume(), 0.75))
-		love.audio.play(noises) 
+	if self.wins >= 15 then gs.switch(fishinhole) 
+	else
+		if not typermusic:isPlaying() then love.audio.play(typermusic) end
+		if not noises:isPlaying() then 
+			noises:setVolume(math.max(0.9*noises:getVolume(), 0.75))
+			love.audio.play(noises) 
+		end
 	end
 
 	if self.word == "" then
@@ -200,9 +192,6 @@ function typer:update(dt)
 		}
 	})
 
-	-- i ought to look at some derivatives to figure teh rotation speed out
-	-- ugh
-	
 	self.cloudanim.rot = (self.cloudanim.rot + 
 		self.cloudanim.ratio[1] * dt * 
 		self.cloudanim.rotspeed/math.sqrt(diff(self.cloudanim.ratio)/avg(self.cloudanim.ratio))
@@ -219,12 +208,13 @@ function typer:update(dt)
 		self.cloudanim.timer:reset()
 	end
 
-	if self.talkanim.saywordtimer:countdown(dt) and not sam:talking() then
+	if self.talkanim.saywordtimer:countdown(dt) and not self.samwords[self.word]:isPlaying() then
 		self.talkanim.talking = true
 		self.wordx = host.x + 50
 		self.wordy = host.y - 50
+
+		if self.wins < 15 then love.audio.play(self.samwords[self.word]) end
 		
-		sam:say(self.word)
 		self.talkanim.wordboxtimer:reset()
 		self.talkanim.talking = true
 		self.talkanim.saywordtimer:reset()
@@ -275,7 +265,9 @@ function typer:draw()
 
 	love.graphics.setColor(0.9, 0.9, 1)
 	cloud:draw()
+	cloud:draw()
 	love.graphics.setColor(1, 1, 1)
+	host:draw()
 	host:draw()
 
 	-- letters

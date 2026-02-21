@@ -1,7 +1,6 @@
 -- inspect = require 'lib.inspect'
 require 'lib.util'
 require 'lib.tesound'
-require 'lib.sam'
 
 require 'rect'
 require 'fish'
@@ -32,10 +31,9 @@ function love.load()
 	-- accessing particular fish --> fishes.filename or fishes["filename"]
 	-- all fish have default values for everything unless given in this table
 	fishes = loadfish({})
-	sam:outpath("lib/samout.wav")
 	
 	-- uses functions in fishinhole.lua to start out
-	gs.switch(typer)
+	gs.switch(fishinhole)
 end
 
 function love.keyreleased(...)

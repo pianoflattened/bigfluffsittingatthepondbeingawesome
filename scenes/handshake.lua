@@ -53,8 +53,8 @@ function handshake:leave()
 
 	dooropens.show = false
 
-	arm.x = 0
-	arm.y = 77
+	arm.x = 600
+	arm.y = 520
 	arm.speed = 0
 	arm:setframe()
 
