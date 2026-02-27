@@ -1,29 +1,22 @@
-squidvid = {
-	basepath = "scenes/squidvid/",
-	played = false,
-}
+local squidvid = {}
+local basepath = "scenes/squidvid/"
+local played = false
+local video = love.graphics.newVideo(self.basepath.."squidvid.ogv")
+local sx, sy = 800/video:getWidth(), 600/video:getHeight()
 
-function squidvid:init()
-	video = love.graphics.newVideo(self.basepath.."squidvid.ogv")
-	scalex = 800/video:getWidth()
-	scaley = 600/video:getHeight()
+function squidvid.enter()
+	played = false
 end
 
-function squidvid:enter()
-	self.played = false
+function squidvid.update(dt)
+	if not video:isPlaying() and not played then 
+		video:play()
+		played = true
+	else return fishinhole, 1 end
 end
 
-function squidvid:update(dt)
-	if not video:isPlaying() then
-		if not self.played then 
-			video:play()
-			self.played = true
-		else gs.switch(fishinhole) end
-	end
-end
-
-function squidvid:draw()
-	love.graphics.draw(video, 0, 0, 0, scalex, scaley)
+function squidvid.draw()
+	love.graphics.draw(video, 0, 0, 0, sx, sy)
 end
 
 return squidvid

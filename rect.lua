@@ -58,7 +58,15 @@ function rect:collides(other)
 	return self.x + self.ox + self.dx > other.x + other.ox and self.x + self.ox < other.x + other.ox + other.dx and self.y + self.oy + self.dy > other.y + other.oy and self.y + self.oy < other.y + other.oy + other.dy
 end
 
-function rect:collidesrects(others)
+function rect:collidesrects(...)
+	local args = {...}
+	local others = {}
+	for _, othertable in ipairs(args) do
+		for i = 1, #othertable do
+			others[#others+1] = othertable[i]
+		end
+	end
+
 	for _, other in ipairs(others) do
 		if self:collides(other) then return true end
 	end

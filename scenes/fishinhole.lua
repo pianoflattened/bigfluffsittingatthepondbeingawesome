@@ -1,306 +1,324 @@
-fishinhole = {
-	basepath = "scenes/fishinhole/"
+local fishcurve = require 'scenes.fishinhole.fishcurve'
+
+local fishinhole = {}
+local basepath = "scenes/fishinhole/"
+
+local bigfluff = actor:new(basepath, "bigfluff", {ox = 99, oy = 165})
+bigfluff.x, bigfluff.y = 610, 397
+bigfluff.rect = rect:new(-42, 93, 87, 32)
+bigfluff.speed = 200
+bigfluff.grunting = false
+
+local rod = actor:new(basepath, "rod", {ox = 193, oy = 210})
+rod.actions.casting = action:new({
+	{ -- frame 1
+		transform = function(rod)
+			rod.transform.dr = 0.57*math.pi
+			rod.transform.oy = rod.transform.init.oy + 50
+			rod.transform.ox = rod.transform.init.ox + 10
+		end
+	},
+	{ -- frame 2
+		test = function()
+			return not love.keyboard.isDown("lctrl")
+		end
+		-- hold back until release
+	},
+	{ time = 0.2 }, -- frame 3; no change for a little bit. delay emulates swing time
+	{ -- frame 4
+		transform = function(rod)
+			rod.transform.dr = 0
+			rod.transform.oy = rod.transform.init.oy
+			rod.transform.ox = rod.transform.init.ox
+		end
+	}
+})
+
+local line = actor:new(basepath, "line", {ox = 233, oy = 208})
+line.scaledheight = 0.01
+-- example calculation of scale & offset for stretch :D
+line.transform.sy = line.scaledheight / line.height
+line.transform.oy = line.transform.init.oy / line.transform.sy
+line.speed = 400
+line.actions = {
+	reeling = action:new({
+		{}, -- :start calls the first frame & i want casting to interrupt reeling
+		{ 
+			transform = function(line, dt)
+				line.scaledheight = line.scaledheight - (dt * line.speed)
+				line.transform.sy = line.scaledheight / line.height
+				line.transform.oy = line.transform.init.oy / line.transform.sy
+			end,
+
+			test = function(line, dt)
+				if love.keyboard.isDown("lshift") and line.scaledheight - (dt * line.speed) > 0 then return true, 0 
+				else return true, 1 end
+			end,
+		}
+	}),
+
+	casting = action:new({
+		{ -- frame 1
+			transform = function(line)
+				line.transform.dr = 0.57*math.pi
+				line.transform.oy = line.transform.init.oy + 50
+				line.transform.ox = line.transform.init.ox + 10
+			end,
+		},
+		{ -- frame 2
+			test = function()
+				return not love.keyboard.isDown("lctrl")
+			end,
+			-- hold back until release
+		},
+		{ time = 0.2 }, -- frame 3, in sync with rod
+		{ -- frame 4
+			transform = function(line)
+				line.scaledheight = math.min(line.scaledheight + line.height, line.height * 5)
+				line.transform.sy = line.scaledheight / line.height
+				line.transform.oy = line.transform.init.oy / line.transform.sy
+			
+				line.transform.dr = 0
+				line.transform.ox = line.transform.init.ox
+			end
+		}
+	}),
+
+	grunting = action:new({
+		{ -- frame 1
+			transform = function(line)
+				line.transform.dx = 20 * (love.math.random() - 0.5)
+				line.transform.dy = 20 * (love.math.random() - 0.5)
+			end
+		}
+	})
 }
 
-function fishinhole:init()
-	fisher = guy:new(self.basepath.."bigfluff.png", 99, 165, 610, 397)
-	fisherstates = enum:new("none", "ctrldown", "casting")
-	fisher.state = fisherstates.none
-	fisher.castTimer = timer:new(0.2)
-	fisher.rect = rect:new(-42, 93, 87, 32)
-	fisher.speed = 200
-	fisher.grunting = false
-	
-	rod = guy:new(self.basepath.."rod.png", 193, 210) -- 132, 30
-	line = guy:new(self.basepath.."line.png", 233, 208) -- 172, 97
-	line.oheight = line.img:getHeight()
-	line.owidth = line.img:getWidth()
-	line:stretchy(0) -- rod starts out reeled in
-	line.hstretch = 0
-	line.threshold = 50
-	line.speed = 400
-	line.reeling = false
+local ripple = actor:new(basepath, "ripple", {ox = 32, oy = 9})
+ripple.inwater = false
 
-	lake = level:new(self.basepath.."level.png", {
-		rect:new(114, 273, 121, 86),
-		rect:new(180, 291, 208, 195),
-		rect:new(132, 354, 54, 97),
-		rect:new(362, 344, 290, 111),
-		rect:new(383, 300, 41, 186),
-		rect:new(424, 455, 90, 22),
-		rect:new(145, 451, 35, 29),
-		rect:new(298, 279, 82, 12),
-		rect:new(538, 327, 107, 17),
-		rect:new(514, 455, 105, 17),
-		rect:new(651, 351, 28, 101),
-		rect:new(135, 450, 14, 20),
+local splash = effect:new(basepath, "splash", {ox = 35, oy = 40})
+splash.actions = {
+	decaying = action:new({
+		{ time = 3.6 },
+		{ transform = effect.destroy }
+	}),
+	
+	pulling = action:new({
+		{ time = 1 },
+		{ transform = effect.destroy }
 	})
+}
 
-	ripple = guy:new(self.basepath.."ripple.png", 32, 9)
-	ripple.inwater = false
+local firstsplash = timer:new(2)
+local dtaccum = 0
 
-	splash = effect:new(self.basepath.."splash.png", 35, 40)
-	splash.spots = {}
-	
-	-- bunch of default values that should never see the light of day
-	caughtfish = fishes.alan
-	caughtfish.x = 0
-	caughtfish.y = 0
-	caughtfish.show = false
-	caughtfish.timer = timer:new(0)
-	caughtfish.t = 0
-	caughtfish.curve = love.math.newBezierCurve(0, 0, 20, 20, 40, 0)
-
-	starting = true
-	firstsplash = timer:new(2)
-	fishspawnfreqtimer = 0
-
-	crawdadhole = love.audio.newSource(self.basepath.."bigfluff.wav", "stream")
+local function pickspawnpoint(rects)
+	local weights = {}
+	for _, r in ipairs(rects) do weights[#weights+1] = r:area() end
+	local whichrect = weightedrandom(rects, weights)
+	return whichrect:randpoint()
 end
 
-function fishinhole:leave() 
+local loudsplash = love.audio.newSource(basepath.."splash.mp3", "static")
+local function spawnsplash(...)
+	splash:spawn(...)
+	love.audio.play(loudsplash)
+	splash.spots[#splash.spots]:start("decaying")
+end
+
+local lake = level:new(basepath, "level", {
+	rect:new(114, 273, 121, 86),
+	rect:new(180, 291, 208, 195),
+	rect:new(132, 354, 54, 97),
+	rect:new(362, 344, 290, 111),
+	rect:new(383, 300, 41, 186),
+	rect:new(424, 455, 90, 22),
+	rect:new(145, 451, 35, 29),
+	rect:new(298, 279, 82, 12),
+	rect:new(538, 327, 107, 17),
+	rect:new(514, 455, 105, 17),
+	rect:new(651, 351, 28, 101),
+	rect:new(135, 450, 14, 20),
+})
+
+local screenwalls = {
+	rect:new(-5, -5, width+210, 5), 	   -- top
+	rect:new(-5, -5, 5, height+10), 	   -- left
+	rect:new(width+200, -5, 5, height+10), -- right
+	rect:new(width, height, width+210, 5), -- bottom
+}
+
+local caughtfishes = {}
+local fishactions = {
+	catchcurve = action:new({
+		{ -- frame 1
+			transform = function(thisfish, dt, thistimer)
+				local x1, y1 = thisfish.transform.init.ox, thisfish.transform.init.oy
+				local x2, y2 = bigfluff.x, bigfluff.y - bigfluff.height / 3
+				local curve = fishcurve(x1, y1, x2, y2)
+				thisfish.x, thisfish.y = curve:evaluate(1-thistimer:progress())
+				-- funny rotates
+				-- 1+(abs(0.5-timer:progress)) is to make it spin slower at the peak
+				thisfish.transform.dr = thisfish.transform.dr + 4*math.pi*dt*(math.abs(0.5-thistimer:progress())+1)^2
+			end,
+
+			time = 0.75
+		},
+	})
+}
+
+local function pickfish()
+	local fishesinorder = keys(fishes)
+	local fishweights = {}
+	for i, k in ipairs(fishesinorder) do fishweights[i] = fishes[k].rarity end
+	return weightedrandom(fishesinorder, fishweights)
+end
+
+local crawdadhole = love.audio.newSource(basepath.."bigfluff.wav", "stream")
+local grunts = {
+	love.audio.newSource(basepath.."alangrunt.mp3", "static"),
+	love.audio.newSource(basepath.."macygrunt.mp3", "static"),
+	love.audio.newSource(basepath.."jackgrunt.mp3", "static"),
+	love.audio.newSource(basepath.."junegrunt.mp3", "static"),
+}
+-- function fishinhole.enter() end
+function fishinhole.leave() 
 	love.audio.stop(crawdadhole)
+	for _, grunt in ipairs(grunts) do love.audio.stop(grunt) end
 end
 
-function fishinhole:update(dt)
-	fishspawnfreqtimer = fishspawnfreqtimer + dt
+function fishinhole.update(dt)
 	if not crawdadhole:isPlaying() then love.audio.play(crawdadhole) end
 
-	-- checks arrow keys & collision
-	local dx, dy = domovement(fisher, {
-		rect:new(-5, -5, width+210, 5), -- top
-		rect:new(-5, -5, 5, height+10), -- left
-		rect:new(width+200, -5, 5, height+10), -- right
-		rect:new(width, height, width+210, 5), -- bottom
-		table.unpack(lake.rects)
-	}, dt, function (x, dt, s) return x + dt*s end)
+	local dx, dy = 0, 0
+	local p = function(x, dt, s) return x + dt * s end
+	if love.keyboard.isDown("up")    then dy = p(dy, dt, -bigfluff.speed) end
+	if love.keyboard.isDown("down")  then dy = p(dy, dt, bigfluff.speed) end
+	if love.keyboard.isDown("left")  then dx = p(dx, dt, -bigfluff.speed) end
+	if love.keyboard.isDown("right") then dx = p(dx, dt, bigfluff.speed) end
 	
-	fisher.x = fisher.x + dx
-	fisher.y = fisher.y + dy
-
-	-- reel in line
-	if love.keyboard.isDown("lshift") and line.height > 0 then 
-		line:stretchy(math.floor(line.height - line.speed*dt))
-		line.reeling = true
-	else line.reeling = false
+	if bigfluff.rect:at(bigfluff.x + dx, bigfluff.y + dy):collidesrects(lake.rects, screenwalls) then 
+		if bigfluff.rect:at(bigfluff.x + dx, bigfluff.y):collidesrects(lake.rects, screenwalls) then dx = 0 end
+		if bigfluff.rect:at(bigfluff.x, bigfluff.y + dy):collidesrects(lake.rects, screenwalls) then dy = 0 end
 	end
 
-	-- move line a little to the right
-	if love.keyboard.isDown("x") and line.hstretch > -line.threshold then 
-		line:stretchx(math.floor(line.width - line.speed*dt)) -- actually stretches
+	bigfluff.x, bigfluff.y = bigfluff.x + dx, bigfluff.y + dy
 
-		-- bookkeeping so that it can't stretch past threshold
-		line.hstretch = math.floor(line.hstretch - line.speed*dt)
-		if line.hstretch <= -line.threshold then 
-			line.hstretch = -line.threshold
-			line:stretchx(math.floor(line.owidth - line.threshold))
+	if love.keyboard.isDown("lshift") and line.scaledheight - (dt * line.speed) > 0 then 
+		line:start("reeling", dt)
+	end
+
+	if love.keyboard.isDown("lctrl") then 
+		line:stop("reeling")
+		rod:start("casting")
+		line:start("casting")
+	end
+
+	rod.x, rod.y = bigfluff.x, bigfluff.y
+	line.x, line.y = rod.x, rod.y
+	ripple.x = line.x - line.transform.init.ox
+	ripple.y = line.y - line.transform.init.oy + line.scaledheight
+	ripple.inwater = pointinrects(ripple.x, ripple.y, lake.rects) and line.scaledheight >= 12
+
+	-- fish spawning
+	-- guarantees a spawn within first 2 seconds
+	if firstsplash and firstsplash:countdown(dt) then
+		firstsplash = nil -- destroy timer
+		spawnsplash(pickspawnpoint(lake.rects))
+	else
+		local fishchance = math.ceil(1500/(dtaccum/120+5))
+		if love.math.random(1, fishchance) == 1 then
+			spawnsplash(pickspawnpoint(lake.rects))
 		end
 	end
 
-	-- move line a little to the left
-	if love.keyboard.isDown("z") and line.hstretch < line.threshold then 
-		line:stretchx(math.floor(line.width + line.speed*dt)) -- actually stretches
-
-		-- bookkeeping
-		line.hstretch = math.floor(line.hstretch + line.speed*dt)
-		if line.hstretch >= line.threshold then 
-			line.hstretch = line.threshold
-			line:stretchx(math.floor(line.owidth + line.threshold))
-		end
-	end
-
-	-- cast line
-	if love.keyboard.isDown("lctrl") then
-		fisher.castTimer:reset()
-		fisher.state = fisherstates.ctrldown
-
-		-- animation stuff
-		rod.r = 0.57*math.pi
-		rod.oy = rod.ooy + 50
-		rod.ox = rod.oox + 10
-		
-		line.r = 0.57*math.pi
-		line.ox = line.oox + 50
-		line.oy = line.ooy + 10
+	if dtaccum + dt <= 65535 then dtaccum = dtaccum + dt end
 	
-	-- cast timer only starts counting down AFTER ctrl is released
-	elseif fisher.state == fisherstates.ctrldown then fisher.state = fisherstates.casting end
-	if fisher.state == fisherstates.casting and fisher.castTimer:countdown(dt) then
-		-- reset animation stuff
-		rod.r = 0
-		line.r = 0
-		rod.oy = rod.ooy
-		rod.ox = rod.oox
-		line.ox = line.oox
-		line.oy = line.ooy
-
-		-- extend the line, limit to 5 casts
-		line:stretchy(line.height + line.oheight, line.oheight*5)
-		
-		fisher.state = fisherstates.none
-		fisher.castTimer:reset()
-	end
-
-	-- i set the offsets for the line and rod so that this works
-	rod.x, rod.y = fisher.x, fisher.y
-	line.x, line.y = fisher.x, fisher.y
-	ripple.x = line.x - line.oox - line.hstretch
-	ripple.y = line.y - line.ooy + (line.height)
-	ripple.inwater = pointinrects(ripple.x, ripple.y, lake.rects) and line.height >= 12
-
-	-- i try to get the spawns going really quick
-	-- firstsplash guarantees a fish spawns within the first 2 seconds
-	if starting and firstsplash:countdown(dt) then
-		table.insert(splash.spots, self:tryspawnfish(lake.rects, fishspawnfreqtimer, true))
-		starting = false
-	
-	-- if not at the beginning only try to spawn when a fish is not being caught
-	-- we test by seeing if controls r locked
-	elseif fisher.speed > 0 then
-		local maybespawn = self:tryspawnfish(lake.rects, fishspawnfreqtimer)
-		if maybespawn then table.insert(splash.spots, maybespawn) end
-	end
-
-	-- if above manages to spawn a fish in a certain spot,
-	-- the x/y goes into a table along with a timer
-	local forremoval = {}
-	for idx, spot in ipairs(splash.spots) do
-		-- each timer is counted down while untouched by the player & if at 0,
-		if not spot.snagged and spot.timer:countdown(dt) then
-			table.insert(forremoval, idx) -- then the index is queued for removal
-		end
-	end
-
 	-- here we check to see if the ripple collides with any of the splash points
 	-- used to be a bug where finding multiple spots would freeze the rod
 	-- this picks the closest one
-	local collidedspot = nil
+	local collidedidx, collidedspot = nil, nil
 	local collideddist = math.huge
-	local collidedidx = nil
 	for idx, spot in ipairs(splash.spots) do
 		local collides = ripple:rect():haspoint(spot.x, spot.y)
 		local distance = distance(ripple:rect():center(), {spot.x, spot.y})
-		if collides and distance < collideddist then 
-			collidedspot = spot
+		if collides and distance < collideddist then
 			collideddist = distance
 			collidedidx = idx
 		end
 	end
 
-	if collidedspot ~= nil and line.reeling then
-		if not collidedspot.snagged then 
-			collidedspot.snagged = true -- can probably remove this but like it doesnt matter idk it works
-			if not collidedspot.pulltimer then collidedspot.pulltimer = timer:new(1) end
-			line.speed = 0
+	if collidedidx then collidedspot = splash.spots[collidedidx] end
+
+	local tofish = nil
+	if collidedidx and line:is("reeling") then
+		collidedspot:stop("decaying")
+		collidedspot:start("pulling")
+		line.speed = 0
+
+		local gruntplaying = false
+		for _, grunt in ipairs(grunts) do
+			if grunt:isPlaying() then gruntplaying = true end
 		end
+		if not gruntplaying then love.audio.play(trandom(grunts)) end
+		
+		line:start("grunting")
 
-		if not fisher.grunting then 
-			local grunter = trandom({"alan", "macy", "jack", "june"})
-			TEsound.play(self.basepath..grunter.."grunt.mp3", "static", 1)
-			fisher.grunting = true
-		end
-
-		if collidedspot.pulltimer:countdown(dt) then
-			table.insert(forremoval, collidedidx)
-			local fishesinorder = keys(fishes)
-			local fishweights = {}
-			for _, k in ipairs(fishesinorder) do table.insert(fishweights, fishes[k].rarity) end
-			local fishname = weightedrandom(fishesinorder, fishweights)
-			caughtfish = fishes[fishname]
-
-			if scenes[fishname] then gs.switch(scenes[fishname]) end
-			points = points + caughtfish.points
-
-			-- put fish at beginning of curve
-			caughtfish.x, caughtfish.y = collidedspot.x, collidedspot.y
-			caughtfish.ox, caughtfish.oy = collidedspot.x, collidedspot.y
-			-- amount of time spent following the catch curve
-			caughtfish.timer = timer:new(1.5)
-
-			-- makes sure the fish is drawn
-			caughtfish.show = true
-			-- stop playing the sound & let the line move
+		if collidedspot.frame.pulling == 2 then
+			tofish = pickfish()
+			line.transform.dx, line.transform.dy = 0, 0
 			line.speed = 400
-			fisher.grunting = false
+			line:stop("grunting")
 		end
-	elseif collidedspot then
-		if collidedspot.pulltimer then collidedspot.pulltimer:reset() end
-		collidedspot.snagged = false
+
+	elseif collidedidx then -- clean up after a fail
+		collidedspot:stop("pulling")
+		collidedspot:start("decaying")
+		line:stop("grunting")
+		line.transform.dx, line.transform.dy = 0, 0
 		line.speed = 400
-		fisher.grunting = false
 	end
 
-	-- sort greatest to least so indices dont get fd up
-	table.sort(forremoval, function(a, b) return a > b end)
-	for _, idx in ipairs(forremoval) do
-		-- remove everything that needs to go
-		table.remove(splash.spots, idx)
+	line:update(dt)
+	rod:update(dt)
+	for i = #splash.spots, 1, -1 do
+		if splash.spots[i].destroy then table.remove(splash.spots, i)
+		else splash.spots[i]:update(dt) end
 	end
 
-	-- i need to make it so that reeling in the fish (shift) catches it
-	-- and u can fail to catch by not reeling. and it pulls a little
-	if caughtfish.show then			
-		if caughtfish.timer:countdown(math.sqrt(dt)/4) then
-			caughtfish.timer:reset()
-			points = points + caughtfish.points
-			fisher.speed = 200 
-			caughtfish.show = false
-		end
-
-		-- follow the curve
-		caughtfish.curve = fishcurve(caughtfish.ox, caughtfish.oy, fisher.x, fisher.y-fisher.height/3)
-		caughtfish.x, caughtfish.y = caughtfish.curve:evaluate(1-caughtfish.timer:progress())
+	if tofish then
+		local fishx, fishy = collidedspot.x, collidedspot.y
+		local f = fishes[tofish]
+		
+		local fa = actor:new("fish/", tofish, {sx = f.scale, ox = f.len/2, oy = f.height/2})
+		fa.x, fa.y = fishx, fishy
+		fa.transform.init.ox, fa.transform.init.oy = fishx, fishy
+		fa.actions = copy(fishactions)
+		fa:start("catchcurve", dt)
+		caughtfishes[#caughtfishes+1] = fa
 	end
-end
 
-function fishinhole:draw()
-	love.graphics.setColor(1, 1, 1)
-			
-	lake:draw(0, 0)
-	if fisher.state == fisherstates.none and ripple.inwater then 
-		ripple:draw()
-	end
-	
-	for _, spot in ipairs(splash.spots) do splash:draw(spot.x, spot.y) end
-
-	-- makes line jitter only visual so doesnt mess w physics
-	if fisher.grunting then
-		local jitteramt = 20
-		line:draw(line.x + (jitteramt*(love.math.random()-0.5)),
-				  line.y + (jitteramt*(love.math.random()-0.5))) 
+	if tofish and scenes[tofish] then 
+		return scenes[tofish] -- switch to scene
 	else
-		line:draw()
+		for i = #caughtfishes, 1, -1 do
+			caughtfishes[i]:update(dt)
+			if #caughtfishes[i].state == 0 then 
+				table.remove(caughtfishes, i)
+			end
+		end
 	end
-	
-	fisher:draw()
+end
+
+function fishinhole.draw()
+	lake:draw(0, 0)
+	if not rod:is("casting") and ripple.inwater then ripple:draw() end
+	for _, spot in ipairs(splash.spots) do spot:draw() end
+	line:draw()
+	bigfluff:draw()
 	rod:draw()
-	if caughtfish.show then
-		caughtfish:draw(caughtfish.x, caughtfish.y, caughtfish.scale) 
-	end
+	for _, caughtfish in ipairs(caughtfishes) do caughtfish:draw() end
 end
 
-function fishinhole:tryspawnfish(rects, freq, force)
-	local fishchance = math.ceil(1500/((freq/120)+5))
-	if love.math.random(1, fishchance) == 1 or force then
-		local weights = {}
-		for _, r in ipairs(rects) do table.insert(weights, r:area()) end
-		local whichrect = weightedrandom(rects, weights)
-
-		local spawnx, spawny = whichrect:randpoint()
-		local timer = timer:new(3.6) -- length of splash audio
-
-		TEsound.play(self.basepath.."splash.mp3", "static", {}, 0.8)
-		return {
-			x = spawnx, 
-			y = spawny,
-			timer = timer,
-		}
-	end
-	return false
-end
-
-function fishcurve(x1, y1, x3, y3)
-	local x2 = (x1+x3)/2
-	local y2 = 2*catenary(x1, y1, x3, y3)(x2)
-	return love.math.newBezierCurve(x1, y1, x2, y2, x3, y3)
-end
+return fishinhole

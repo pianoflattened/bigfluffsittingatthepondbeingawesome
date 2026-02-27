@@ -1,16 +1,3 @@
-scene = {
-	kinds = enum:new("minigame", "cutscene")
-}
-scene.__index = scene
-
-function scene:new(ref, kind)
-	local o = setmetatable({}, self)
-	o.ref = ref
-	-- specify as 'false' if is not a minigame. if nothing is given this resolves to true
-	o.kind = kind or scene.kinds.minigame
-	return o
-end
-
 fish = {}
 fish.__index = fish
 -- this passes name instead of calculating it from path b/c 
@@ -21,16 +8,13 @@ function fish:new(path, name, attrs)
 	o.name = name -- string.sub(string.sub(path, 6), 0, -5)
 	o.img = love.graphics.newImage(path)
 	o.len = attrs.len or o.img:getWidth()
+	o.height = o.img:getHeight()
 	o.scale = (attrs.len and attrs.len/o.img:getWidth()) or 100/math.min(o.img:getWidth(), o.img:getHeight())
 	o.points = attrs.points or 1
 	-- (1/x)*(ln(x)+1)^2) without wacky behavior near 0
 	o.rarity = attrs.rarity or ((o.points + 11.54715)^(-0.772983))/(9.22967^(-1.10754))
-	o.scene = attrs.scene or scene:new({}, scene.kinds.cutscene)
+	o.seen = false
 	return o
-end
-
-function fish:draw(x, y, scale)
-	love.graphics.draw(self.img, x, y, 0, scale, scale, self.img:getWidth()/2, self.img:getHeight()/2)
 end
 
 function loadfish(attrs)
