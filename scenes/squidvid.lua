@@ -1,7 +1,7 @@
 local squidvid = {}
 local basepath = "scenes/squidvid/"
 local played = false
-local video = love.graphics.newVideo(self.basepath.."squidvid.ogv")
+local video = love.graphics.newVideo(basepath.."squidvid.ogv")
 local sx, sy = 800/video:getWidth(), 600/video:getHeight()
 
 function squidvid.enter()

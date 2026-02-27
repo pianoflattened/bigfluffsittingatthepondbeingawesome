@@ -169,13 +169,18 @@ function typer.update(dt)
 		host:start("stoptalking")
 	end
 
+	local oldx, oldy, oldrot, oldrot2 = cloud.x, cloud.y, cloud.rot, cloud.rot2
+	cloud.rot = cloud.rot % (2*math.pi)
+	cloud.rot2 = cloud.rot2 % (2*math.pi)
 	-- first orbit
 	cloud.x = cloud.center.x + 300*math.cos(cloud.rot) 
 	cloud.y = cloud.center.y + 100*math.sin(cloud.rot)
 	-- second orbit
-	cloud.x = (cloud.x - cloud.center.x) * math.cos(cloud.rot2) + (cloud.y - cloud.center.y) * math.sin(cloud.rot2) + cloud.center.x
-	cloud.y = (cloud.y - cloud.center.y) * math.cos(cloud.rot2) + (cloud.x - cloud.center.x) * math.sin(cloud.rot2) + cloud.center.y
+	cloud.x = (cloud.x - cloud.center.x)*math.cos(cloud.rot2) + (cloud.y - cloud.center.y)*math.sin(cloud.rot2) + cloud.center.x
+	cloud.y = (cloud.y - cloud.center.y)*math.cos(cloud.rot2) + (cloud.x - cloud.center.x)*math.sin(cloud.rot2) + cloud.center.y
 
+	assert(cloud.x == cloud.x and cloud.y == cloud.y, "GOT NAN! FIX THIS !!!!!")
+	
 	host.x, host.y = cloud.x, cloud.y - 49
 	points[#points+1] = {
 		x = host.x,
@@ -187,12 +192,11 @@ function typer.update(dt)
 		}
 	}
 
-	cloud.rot = (cloud.rot +
-		cloud.ratio[1] * dt * 0.22/math.sqrt(diff(cloud.ratio)/avg(cloud.ratio))) % (2*math.pi)
-	cloud.rot2 = (cloud.rot2 +
-		cloud.ratio[2] * dt * 0.22/math.sqrt(diff(cloud.ratio)/avg(cloud.ratio))) % (2*math.pi)
+	cloud.rot = cloud.rot +	cloud.ratio[1] * dt * 0.22/math.sqrt(diff(cloud.ratio)/avg(cloud.ratio))
+	cloud.rot2 = cloud.rot2 + cloud.ratio[2] * dt * 0.22/math.sqrt(diff(cloud.ratio)/avg(cloud.ratio))
 
 	cloud:update(dt)
+	host:update(dt)
 	local keycapx = 400 - (65 * (#keycap.spots - 1)/2)
 	for _, cap in ipairs(keycap.spots) do
 		cap.x = keycapx
