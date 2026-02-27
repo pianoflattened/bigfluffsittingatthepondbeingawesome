@@ -137,6 +137,7 @@ function typer.keypressed(k)
 		local l = {}
 		for _, cap in ipairs(keycap.spots) do l[#l+1] = cap.letter end
 		if table.concat(l, "") == word then
+			love.audio.stop(samwords[word])
 			word = ""
 			wins = wins + 1
 			keycap.spots = {}
@@ -166,7 +167,7 @@ function typer.update(dt)
 		sayword:reset()
 	elseif not samwords[word]:isPlaying() then
 		host:stop("talking")
-		host:start("stoptalking")
+		host:start("stoptalking") -- this loops by accident but its like fine probably better this way
 	end
 
 	local oldx, oldy, oldrot, oldrot2 = cloud.x, cloud.y, cloud.rot, cloud.rot2
