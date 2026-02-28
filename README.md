@@ -35,6 +35,7 @@ a transform object specifies translation (`dx`, `dy`), rotation (`dr`), scale (`
 actors have `actions` and `states`. you define them using `action:new` by giving lists of `frame` data. each frame has:
 - a transform AND/OR a costume (to apply for the frame's duration)
 - EITHER a time (which the constructor will make into a timer) OR a test
+
 the costume will always be a string. transform is either a transform object OR a function. originally this function was meant to return a transform object, but it very quickly turned into an arbitrary callback that modified the actor. the callback gives you a reference to the actor, dt, and a reference to the timer (if there is one)
 
 when the timer runs out OR the test returns true, that tells `actor:update` to move on to the next frame. a test also has a bonus optional return value `n`, which specifies the number of frames to advance when the test returns true. n can be negative, but you can also, in the `action` constructor, follow your list of framedata with `true` if all you want is for your action to loop rather than end
