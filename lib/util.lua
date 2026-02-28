@@ -177,3 +177,10 @@ function table.contains(t, i)
 	end
 	return false
 end
+
+function table.pack(...)
+  local num = select('#',...)
+  return setmetatable({...}, {__len=function() return num end})
+end
+
+table.unpack = table.unpack or unpack
