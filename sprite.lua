@@ -117,7 +117,8 @@ end
 
 function actor:addcostume(basepath, name)
 	if not self.costumes[name] then 
-		self.costumes[name] = love.graphics.newImage(basepath..name..".png") 
+		if string.find(name, "%.") then self.costumes[name] = love.graphics.newImage(basepath..name)
+		else self.costumes[name] = love.graphics.newImage(basepath..name..".png") end
 	end
 end
 

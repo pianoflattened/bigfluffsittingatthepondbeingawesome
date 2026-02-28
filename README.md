@@ -20,3 +20,6 @@ https://love2d.org/wiki/Game_Distribution
 	1. requires your script & saves it to a variable
 	2. assigns your script file to a fish
 		- fish are automatically named internally according to their filenames in the `fish` folder, e.g., `fishes.friend` uses the image `fishes/friend.png`
+
+## SPRITE.LUA DOCUMENTATION
+right now there are three classes to use: actor, effect, & level. an actor is a guy with a location & a bunch of costumes & defined animations. an effect is a machine that makes actors w the same set of costumes but diff locations. a level is an actor with a different constructor that defines collision rectangles
