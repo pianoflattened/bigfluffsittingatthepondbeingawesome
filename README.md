@@ -20,5 +20,3 @@ https://love2d.org/wiki/Game_Distribution
 	1. requires your script & saves it to a variable
 	2. assigns your script file to a fish
 		- fish are automatically named internally according to their filenames in the `fish` folder, e.g., `fishes.friend` uses the image `fishes/friend.png`
-
-hope this helps

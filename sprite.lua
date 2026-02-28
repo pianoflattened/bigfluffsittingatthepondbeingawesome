@@ -122,7 +122,8 @@ function actor:addcostume(basepath, name)
 end
 
 function actor:addcostumes(basepath, ...)
-	for _, arg in ipairs(table.pack(...)) do self:addcostume(basepath, arg) end
+	local costumes = {...}
+	for _, arg in ipairs(table.pack(costumes)) do self:addcostume(basepath, arg) end
 end
 
 function actor:draw()
