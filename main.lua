@@ -32,7 +32,7 @@ function love.load()
 
 	require 'scene'
 	-- uses functions in fishinhole.lua to start out
-	scene.load(typer)
+	scene.load(fishinhole)
 	-- gs.switch(fishinhole)
 end
 
