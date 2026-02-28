@@ -123,7 +123,7 @@ end
 
 function actor:addcostumes(basepath, ...)
 	local costumes = {...}
-	for _, arg in ipairs(table.pack(costumes)) do self:addcostume(basepath, arg) end
+	for _, arg in ipairs(costumes) do self:addcostume(basepath, arg) end
 end
 
 function actor:draw()
