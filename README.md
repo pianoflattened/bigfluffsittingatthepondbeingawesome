@@ -22,8 +22,6 @@ https://love2d.org/wiki/Game_Distribution
 		- fish are automatically named internally according to their filenames in the `fish` folder, e.g., `fishes.friend` uses the image `fishes/friend.png`
 
 ## SPRITE.LUA EXPLANATION
-right now there are three classes to use: actor, effect, & level. an actor is a guy with a location & a bunch of costumes & defined animations. an effect is a machine that makes actors w the same set of costumes but diff locations. a level is an actor with a different constructor that defines collision rectangles
-
 right now there are three classes to use: actor, effect, & level. an actor is a guy with a location & a bunch of costumes (different pictures it can swap to) & defined animations. an effect is a machine that makes actors w the same set of costumes but diff locations. a level is an actor with a different constructor that takes a table of collision rectangles. a good example of an actor is the cloud in `scenes/typer.lua`. a good example of an effect is the splash in `scenes/fishinhole.lua`. a good example of a level is the lake, also in `scenes/fishinhole.lua`
 
 the constructor for actor takes a `basepath` (which is the directory your minigame files are in, ending with a slash) & the `name` of the image to look for. if you do not supply a file extension it will assume it is looking for a png file. it also optionally takes a `transform` object OR a table specifying the differences between the desired & default transform object. more on what that means later
